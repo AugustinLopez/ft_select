@@ -16,7 +16,7 @@ LIBFT=$(PATH_LIB)libft.a
 # --- 1.Source/Header ----------------------------------------------------------
 
 SRC=main
-INCLUDES=	$(PATH_LIB)includes/libft.h \
+INCLUDES=	$(PATH_HDR)libft.h \
 			$(PATH_HDR)ft_select.h
 
 # --- 2.Path -------------------------------------------------------------------
