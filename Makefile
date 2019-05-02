@@ -6,7 +6,7 @@
 #    By: aulopez <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/06 13:11:21 by aulopez           #+#    #+#              #
-#    Updated: 2019/04/18 10:53:04 by aulopez          ###   ########.fr        #
+#    Updated: 2019/04/29 10:34:51 by aulopez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,7 @@ OBJ=$(SRC:%=$(PATH_OBJ)%.o)
 
 CC_FLAGS=-pedantic -g3 -O3 -Werror -Wall -Wextra
 CC_LIB=-L$(PATH_LIB) -lft -ltermcap
-CC_O=gcc $(CC_FLAGS) -c -I$(PATH_HDR) $(CC_LIB)
+CC_O=gcc $(CC_FLAGS) -c -I$(PATH_HDR)
 CC_C=gcc $(CC_FLAGS) -o $(NAME) $(OBJ) -I$(PATH_HDR) $(CC_LIB)
 
 # Text Style
