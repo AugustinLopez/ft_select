@@ -15,7 +15,8 @@ LIBFT=$(PATH_LIB)libft.a
 
 # --- 1.Source/Header ----------------------------------------------------------
 
-SRC=main
+SRC=main \
+	terminal_option
 INCLUDES=	$(PATH_HDR)libft.h \
 			$(PATH_HDR)ft_select.h
 

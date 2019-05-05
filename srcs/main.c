@@ -16,7 +16,7 @@ inline static int	parse_flags(int *ac, char ***av)
 {
 	if (*ac < 2)
 	{
-		ft_dprintf(STDERR_FILENO, "usage: ./ft_select [argument ...]\n");
+		ft_dprintf(STDOUT_FILENO, "usage: ./ft_select [argument ...]\n");
 		return (0);
 	}
 	(*av)++;
@@ -24,74 +24,54 @@ inline static int	parse_flags(int *ac, char ***av)
 	return (1);
 }
 
-int					putschar(int c)
+void				read_keypress(t_term *term, char **av)
 {
-	return (write(STDOUT_FILENO, &c, 1));
-}
-
-inline static char	*get_terminal(void)
-{
-	char	*s;
+	long	key;
 	int		ret;
-	char	buff[1024];
+	int		i;
 
-	if (!(s = getenv("TERM")))
-		ft_dprintf(STDERR_FILENO, "ft_select: Could not get terminal name.\n");
-	else if (!isatty(STDOUT_FILENO))
-		ft_dprintf(STDERR_FILENO, "ft_select: unexpected fd for stdout.\n");
-	else if ((ret = tgetent(buff, s)) < 1)
-		ret < 0 ?
-			ft_dprintf(STDERR_FILENO, "ft_select: not terminfo data found.\n") :
-			ft_dprintf(STDERR_FILENO, "ft_select: could not find %s.\n", s);
-	else
-		return (s);
-	return (NULL);
+	(void)term;
+	i = 0;
+	while (av[i])
+	{
+		av[i + 1] ? ft_dprintf(STDIN_FILENO, "%s ", av[i]) : ft_dprintf(STDIN_FILENO, "%s\n", av[i]);
+		i++;
+	}
+	while (1)
+	{
+		key = 0;
+		ret = read(STDIN_FILENO, &key, sizeof(key));
+		ret = 0;
+		(void)ret;
+		if (key == KEY_LEFT)
+			ft_dprintf(STDIN_FILENO, "<\n");
+		else if (key == KEY_UP)
+			ft_dprintf(STDIN_FILENO, "/\\\n");
+		else if (key == KEY_DOWN)
+			ft_dprintf(STDIN_FILENO, "\\/\n");
+		else if (key == KEY_RIGHT)
+			ft_dprintf(STDIN_FILENO, ">\n");
+		else if (key == KEY_ESCAPE)
+			return ;
+		else
+			ft_dprintf(STDIN_FILENO, "%lc\n",key);
+	}
 }
 
-inline static void	load_new_terminal(t_term *term)
-{
-	tcgetattr(STDOUT_FILENO, &term->saved);
-	tcgetattr(STDOUT_FILENO, &term->current);
-	term->current.c_lflag &= ~(ICANON);
-	term->current.c_cc[VMIN] = 1;
-	term->current.c_cc[VTIME] = 0;
-	tcsetattr(STDOUT_FILENO, TCSANOW, &term->current);
-	tputs(tgetstr("ti", NULL), 1, putschar);
-	tputs(tgetstr("vi", NULL), 1, putschar);
-}
-
-inline static void	load_saved_terminal(t_term *term)
-{
-	tcsetattr(STDOUT_FILENO, TCSANOW, &term->saved);
-	tputs(tgetstr("te", NULL), 1, putschar);
-	tputs(tgetstr("ve", NULL), 1, putschar);
-}
-
-// VMIN and VTIME: http://www.unixwiz.net/techtips/termios-vmin-vtime.html
-//`ti' : https://www.gnu.org/software/termutils/manual/termcap-1.3/html_mono/termcap.html
-//use to move the cursor around the screen. exit with `te'
-//`vi' : make the cursor invisible
 int					main(int ac, char **av)
 {
 	t_term term;
-	char d[10];
-	int		i;
 
-	i = 0;
 	if (!parse_flags(&ac, &av))
 		return (1);
 	if (!(term.name = get_terminal()))
 		return (1);
-	load_new_terminal(&term);
-	while (av[i])
+	if (load_new_terminal(&term))
 	{
-		av[i + 1] ? ft_printf("%s ", av[i]) : ft_printf("%s\n", av[i]);
-		i++;
+		load_saved_terminal(&term);
+		return (1);
 	}
-	ft_putendl(term.name);
-	read(0, d, 10);
-	ft_putstr(d);
-	read(0, d, 10);
+	read_keypress(&term, av);
 	load_saved_terminal(&term);
 	return (0);
 }

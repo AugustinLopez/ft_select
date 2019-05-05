@@ -19,14 +19,25 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <termcap.h>
+#include <limits.h>
 
+#define KEY_LEFT 4479771
+#define KEY_UP 4283163
+#define KEY_DOWN 4348699
+#define KEY_RIGHT 4414235
+#define KEY_ESCAPE 27
 
 // term.name is not malloced
 
-typedef struct		s_term
+typedef struct			s_term
 {
-	struct termios	saved;
-	struct termios	current;
-	char			*name;
-}					t_term;
+	struct termios		saved;
+	struct termios		current;
+	char				*name;
+}						t_term;
+
+char					*get_terminal(void);
+int						load_new_terminal(t_term *term);
+int						load_saved_terminal(t_term *term);
+int						putchar_in(int c);
 #endif
