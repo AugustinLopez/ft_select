@@ -6,7 +6,7 @@
 #    By: aulopez <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/06 13:11:21 by aulopez           #+#    #+#              #
-#    Updated: 2019/04/29 10:34:51 by aulopez          ###   ########.fr        #
+#    Updated: 2019/05/06 11:22:48 by aulopez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,8 @@ LIBFT=$(PATH_LIB)libft.a
 # --- 1.Source/Header ----------------------------------------------------------
 
 SRC=main \
-	terminal_option
+	terminal_option \
+	display_arg
 INCLUDES=	$(PATH_HDR)libft.h \
 			$(PATH_HDR)ft_select.h
 
@@ -97,7 +98,7 @@ BG_LCYA=\033[106m
 all: $(NAME)
 
 $(NAME): $(LIBFT) $(OBJ) $(INCLUDES)
-	-@printf "\n$(FG_LYEL)Object files creation:   $(FG_GRE)$(BOLD)Done.$(RST_A)  \n"
+	-@printf "$(FG_LYEL)Object files creation:   $(FG_GRE)$(BOLD)Done.$(RST_A)  \n"
 	@$(CC_C)
 	-@printf "$(FG_LYEL)Compiling $(NAME):     $(FG_GRE)$(BOLD)Done.$(RST_A)\n"
 
@@ -107,7 +108,7 @@ $(LIBFT):
 	-@printf "===== SUBPROCESS - Over ======\n"
 
 $(PATH_OBJ)%.o:$(PATH_SRC)%.c $(INCLUDES)
-	-@printf "$(FG_CYA)Creating $@ $(RST_A)"
+	-@printf "$(FG_CYA)Creating $@ $(RST_A)\n"
 	@$(CC_O) $< -o $@
 
 clean:

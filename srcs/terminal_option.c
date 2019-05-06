@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/05 14:20:00 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/06 10:30:24 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,15 @@
 **    Moreover, with ``, isatty(STDOUT_FILENO) return 0.
 ** 2. Writing to STDERR may works, but it's a dirty solution.
 ** 3. Writing to STDIN seems the most logical choice.
+** Normally we would use TTY_NAME_MAX, but it is not always defined and
+** using a conditional define is a pain with the norm.
 */
 
 char	*get_terminal(void)
 {
 	char	*s;
 	int		ret;
-	char	buff[TTY_NAME_MAX * 2];
+	char	buff[512];
 
 	if (!(s = getenv("TERM")))
 		ft_dprintf(STDERR_FILENO, "ft_select: Could not get terminal name.\n");
@@ -67,7 +69,7 @@ int		load_new_terminal(t_term *term)
 		return (ret);
 	}
 	ret += tputs(tgetstr("ti", NULL), 1, putchar_in);
-	ret += tputs(tgetstr("vi", NULL), 1, putchar_in);
+	//ret += tputs(tgetstr("vi", NULL), 1, putchar_in);
 	ret += tputs(tgetstr("cl", NULL), 1, putchar_in);
 	ret += tputs(tgetstr("ho", NULL), 1, putchar_in);
 	if (ret)
@@ -83,7 +85,7 @@ int		load_saved_terminal(t_term *term)
 		ft_dprintf(STDERR_FILENO,
 			"ft_select: error when resetting terminal.\n");
 	ret += tputs(tgetstr("te", NULL), 1, putchar_in);
-	ret += tputs(tgetstr("ve", NULL), 1, putchar_in);
+	//ret += tputs(tgetstr("ve", NULL), 1, putchar_in);
 	if (ret)
 		ft_dprintf(STDERR_FILENO, "ft_select: error when resetting screen.\n");
 	return (ret);
