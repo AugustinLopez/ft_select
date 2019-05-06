@@ -6,37 +6,11 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/06 12:35:18 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/06 17:29:45 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
-
-inline static int	parse_flags(t_term *term, int *ac, char ***av)
-{
-	int		i;
-	int		len;
-
-	if (*ac < 2)
-	{
-		ft_dprintf(STDOUT_FILENO, "usage: ./ft_select [argument ...]\n");
-		return (0);
-	}
-	(*av)++;
-	(*ac)--;
-	i = 0;
-	term->colsize = 1;
-	len = 0;
-	while ((*av)[i])
-	{
-		if ((*av)[i][0])
-			len = ft_strlen((*av)[i]);
-		if (len > term->colsize)
-			term->colsize = len;
-		i++;
-	}
-	return (1);
-}
 
 long				read_keypress(t_term *term)
 {
@@ -45,15 +19,9 @@ long				read_keypress(t_term *term)
 	int		ret;
 	int		i;
 
-	//(void)term;
 	i = 0;
 	mem = 0;
 	display_arg(term);
-	/*while (term->av[i])
-	{
-		term->av[i + 1] ? ft_dprintf(STDIN_FILENO, "%s ", term->av[i]) : ft_dprintf(STDIN_FILENO, "%s\n", term->av[i]);
-		i++;
-	}*/
 	while (1)
 	{
 		key = 0;
@@ -87,9 +55,37 @@ void	s_resize(int signo)
 		display_arg(g_term);
 }
 
+void	s_ctrl_z(int signo)
+{
+	if (signo == SIGTSTP)
+	{
+		load_saved_terminal(g_term);
+		signal(SIGTSTP, SIG_DFL);
+		ioctl(STDIN_FILENO, TIOCSTI, "\x1A");
+	}
+}
+
+void	s_fg(int signo)
+{
+	if (signo == SIGCONT)
+	{
+		if (!(g_term->name = get_terminal(g_term->name))
+			|| load_new_terminal(g_term))
+		{
+			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
+			load_saved_terminal(g_term);
+			exit(1);
+		}
+		signal_test();
+		display_arg(g_term);
+	}
+}
+
 void	signal_test(void)
 {
 	signal(SIGWINCH, s_resize);
+	signal(SIGTSTP, s_ctrl_z);
+	signal(SIGCONT, s_fg);
 }
 
 int					main(int ac, char **av)
@@ -97,22 +93,18 @@ int					main(int ac, char **av)
 	t_term term;
 	long	mem;
 
-	if (!parse_flags(&term, &ac, &av))
-		return (1);
-	if (!(term.name = get_terminal()))
+	term.name = 0;
+	if (!init_select(&term, &ac, &av) || !(term.name = get_terminal(term.name)))
 		return (1);
 	if (load_new_terminal(&term))
 	{
 		load_saved_terminal(&term);
 		return (1);
 	}
-	term.ac = ac;
-	term.av = av;
-	g_term = &term;
 	mem = 0;
 	signal_test();
 	mem = read_keypress(&term);
 	load_saved_terminal(&term);
-	//ft_printf("%zu %lc\n",term.colsize, mem);
+	ft_printf("%zu %lc\n",term.maxlen, mem);
 	return (0);
 }

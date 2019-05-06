@@ -6,54 +6,56 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/06 12:46:46 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/06 17:29:57 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
 
-int	col_per_row(t_term *term, int termcol)
+int	loop_sup(t_term *term, int termcol, int *column, int offset)
 {
-	int	column;
-	int	test;
+	int tmp;
 
-	column = termcol;
-	if (column < 0)
-		return (-1);
-	term->coloff = 1;
-	column /= (term->colsize + term->coloff);
-	if (term->ac >= column)
+	while (1)
 	{
-		while (1)
-		{
-			test = termcol / (term->colsize + term->coloff);
-			if (test != column || term->coloff > 5)
-			{
-				term->coloff--;
-				break ;
-			}
-			term->coloff++;
-		}
+		tmp = termcol / (term->maxlen + offset);
+		if (tmp != *column || offset > 5)
+			return (offset - 1);
+		offset += 1;
 	}
-	else if (term->ac < column)
+}
+
+int	loop_inf(t_term *term, int termcol, int *column, int offset)
+{
+	int tmp;
+
+	*column = term->ac;
+	while (1)
 	{
-		while ((term->colsize + term->coloff) * term->ac < termcol)
-		{
-			if (term->coloff > 5)
-				break ;
-			term->coloff++;
-		}
-		column = term->ac;
+		tmp = (term->maxlen + offset) * term->ac;
+		if (tmp >= termcol || offset > 5)
+			return (offset - 1);
+		offset += 1;
 	}
-	if (column == 0)
+}
+
+int	col_per_row(t_term *term, int termcol, int *offset)
+{
+	int		column;
+
+	if (!(column = termcol / (term->maxlen + *offset)))
 	{
-		term->coloff = 0;
+		*offset = 0;
 		return (1);
 	}
+	if (term->ac >= column)
+		*offset = loop_sup(term, termcol, &column, *offset);
+	else
+		*offset = loop_inf(term, termcol, &column, *offset);
 	return (column);
 }
 
-void	print_column(t_term *term, int col, int row)
+void	print_column(t_term *term, int col, int row, int offset)
 {
 	int		c;
 	int		r;
@@ -67,7 +69,7 @@ void	print_column(t_term *term, int col, int row)
 		while (c < col)
 		{
 			if (term->av[i])
-				ft_dprintf(STDIN_FILENO, "%-*s",term->colsize + term->coloff, term->av[i++]);
+				ft_dprintf(STDIN_FILENO, "%-*s",term->maxlen + offset, term->av[i++]);
 			else
 				break ;
 			c++;
@@ -80,27 +82,50 @@ void	print_column(t_term *term, int col, int row)
 	}
 }
 
+int		get_winsize(int *col, int *row)
+{
+	struct winsize	w;
+
+	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &w) < 0)
+	{
+		ft_dprintf(STDERR_FILENO, "ft_select: could not get terminal size.\n");
+		return (-1);
+	}
+	*col = w.ws_col;
+	*row = w.ws_row;
+	if (*col <= 0 || *row <= 0)
+	{
+		ft_dprintf(STDERR_FILENO, "ft_select: invalid terminal size.\n");
+		return (-1);
+	}
+	return (0);
+}
+
 /*
 ** have to use ioctl instead of tgetnum: it does not update)
 */
 
 void	display_arg(t_term *term)
 {
-	int		col;
-	int		row;
-	struct winsize w;
+	int				col;
+	int				row;
+	int				offset;
 
-	ioctl(STDIN_FILENO, TIOCGWINSZ, &w);
-	col = w.ws_col;
-	row = w.ws_row;
-	if (!(term->av) || col <= 0 || row <= 0 || term->colsize > col)
+	col = 0;
+	row = 0;
+	offset = 1;
+	if (tputs(tgetstr("cl", NULL), 1, putchar_in))
+	{
+		ft_dprintf(STDERR_FILENO, "ft_select: could not clear the screen.\n");
 		return ;
-	tputs(tgetstr("cl", NULL), 1, putchar_in);
-	ft_dprintf(STDIN_FILENO, "%dx%d\n", col, row);
-	if ((col = col_per_row(term, col)) <= 0)
+	}
+	if (!(term->av) || get_winsize(&col, &row) || term->maxlen > col)
 		return ;
+	col = col_per_row(term, col, &offset);
 	row = term->ac / col;
 	if (term->ac % col)
 		row++;
-	print_column(term, col, row);
+	term->col = col;
+	term->row = row;
+	print_column(term, col, row, offset);
 }
