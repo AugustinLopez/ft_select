@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/06 17:29:55 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/06 17:55:53 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ char	*get_terminal(char *s)
 			t = s;
 	}
 	s = t;
-	else if (!isatty(STDIN_FILENO))
+	if (!isatty(STDIN_FILENO))
 		ft_dprintf(STDERR_FILENO, "ft_select: STDIN not linked to terminal.\n");
 	else if ((ret = tgetent(buff, s)) < 1)
 		ret < 0 ?
