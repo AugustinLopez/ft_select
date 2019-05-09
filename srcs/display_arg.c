@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/06 17:29:57 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/09 15:50:48 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,23 +59,29 @@ void	print_column(t_term *term, int col, int row, int offset)
 {
 	int		c;
 	int		r;
-	int		i;
+	t_dlist	*tmp;
 
 	r = 0;
 	c = 0;
-	i = 0;
+	tmp = term->dlist;
+	ft_dprintf(STDIN_FILENO, "%d:%d\n", term->col, term->row);
 	while (r < row)
 	{
 		while (c < col)
 		{
-			if (term->av[i])
-				ft_dprintf(STDIN_FILENO, "%-*s",term->maxlen + offset, term->av[i++]);
-			else
+			if (tmp && tmp->flag & FT_CURSOR)
+				ft_dprintf(STDIN_FILENO, "%s%s%s%*c",FT_UNDER, tmp->txt,
+					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+			else if (tmp)
+				ft_dprintf(STDIN_FILENO, "%-*s",
+					term->maxlen + offset, tmp->txt);
+			if (!tmp || (tmp->next->flag & FT_FIRST))
 				break ;
+			tmp = tmp->next;
 			c++;
 		}
 		ft_dprintf(STDIN_FILENO, "\n");
-		if (!term->av[i])
+		if (!tmp || tmp->flag & FT_FIRST)
 			break ;
 		c = 0;
 		r++;

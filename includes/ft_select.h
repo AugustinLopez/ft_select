@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/06 17:29:59 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/09 16:08:55 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,13 @@
 
 /*
 ** KEY_LEFT binary : 01000100 - 01011011 - 00011011
-**                   D        - [        - Esc, ^[
+**                   D        - [        - Esc, 27, ^[
 **                 : ^[[D
 */
+
+# define FT_FIRST 1
+# define FT_CURSOR 2
+# define FT_SELECTED 4
 
 # define KEY_LEFT 4479771L
 # define KEY_UP 4283163L
@@ -68,10 +72,21 @@
 ** We use the global address when a signal is raised.
 */
 
+typedef struct			s_dlist
+{
+	struct s_dlist		*next;
+	struct s_dlist		*prev;
+	char				*txt;
+	int					flag;
+}						t_dlist;
+
 typedef struct			s_term
 {
 	int					ac;
 	char				**av;
+	t_list				*list_av;
+	t_dlist				*dlist;
+	t_dlist				*dcursor;
 	struct termios		saved;
 	struct termios		current;
 	char				*name;
@@ -82,6 +97,7 @@ typedef struct			s_term
 }						t_term;
 
 t_term	*g_term;
+
 
 /*
 ** ---- Prototype --------------------------------------------------------------
@@ -94,4 +110,7 @@ int						load_saved_terminal(t_term *term);
 int						putchar_in(int c);
 void					display_arg(t_term *term);
 void					signal_test(void);
+t_dlist					*ft_dlistnew(char *src, int flag, t_dlist *prev);
+t_dlist					*ft_dlistfree(t_dlist **elem);
+void					ft_dlistdel(t_dlist **elem);
 #endif

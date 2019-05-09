@@ -6,7 +6,7 @@
 #    By: aulopez <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/06 13:11:21 by aulopez           #+#    #+#              #
-#    Updated: 2019/05/06 11:22:48 by aulopez          ###   ########.fr        #
+#    Updated: 2019/05/09 14:36:15 by aulopez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,8 @@ LIBFT=$(PATH_LIB)libft.a
 
 SRC=main \
 	terminal_option \
-	display_arg
+	display_arg \
+	double_link_list
 INCLUDES=	$(PATH_HDR)libft.h \
 			$(PATH_HDR)ft_select.h
 

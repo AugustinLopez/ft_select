@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/06 17:55:53 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/09 15:19:14 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ int	init_select(t_term *term, int *ac, char ***av)
 {
 	int		i;
 	int		len;
+	t_list	*tmp;
 
 	if (*ac < 2)
 	{
@@ -30,11 +31,32 @@ int	init_select(t_term *term, int *ac, char ***av)
 	g_term = term;
 	i = 0;
 	len = 0;
+	tmp = 0;;
 	while ((*av)[i++])
 	{
+		if (tmp == 0)
+		{
+			term->dcursor = ft_dlistnew((*av)[i - 1], FT_CURSOR | FT_FIRST, 0);
+			term->dlist = term->dcursor;
+			tmp = ft_lstnew(0, 0); //don't forget to return if malloc
+			term->list_av = tmp;
+			tmp->pv = (*av)[i - 1];
+			tmp->zu = FT_CURSOR | FT_FIRST; //to be replaced by selected
+		}
+		else
+		{
+			term->dlist = ft_dlistnew((*av)[i - 1], 0, term->dlist);
+			tmp->next = ft_lstnew(0, 0); //don't forget to return if malloc
+			tmp->next->pv = (*av)[i - 1];
+			tmp->next->zu = 0; //to be replaced by not selected
+			tmp = tmp->next;
+		}
 		len = (*av)[i - 1][0] ? ft_strlen((*av)[i - 1]) : 0;
 		term->maxlen = len > term->maxlen ? len : term->maxlen;
 	}
+	term->dlist->next = term->dcursor;
+	term->dcursor->prev = term->dlist;
+	term->dlist = term->dcursor;
 	return (1);
 }
 
