@@ -17,10 +17,19 @@ long				read_keypress(t_term *term)
 	long	key;
 	long	mem;
 	int		ret;
+	t_dlist	*tmp;
+	t_dlist	*ctrl;
+	int		sign;
 	int		i;
+	int		bef;
+	int		aft;
 
-	i = 0;
+	(void)bef;
+	(void)aft;
+	bef = 0;
+	aft = 0;
 	mem = 0;
+	sign = 0;
 	while (1)
 	{
 		key = 0;
@@ -35,9 +44,59 @@ long				read_keypress(t_term *term)
 			term->dcursor = term->dcursor->prev;
 		}
 		else if (key == KEY_UP)
-			ft_dprintf(STDIN_FILENO, "/\\\n");
+		{
+			if (term->row == 1)
+				continue ;
+			if (term->col == 1)
+			{
+				term->dcursor->flag &= ~ FT_CURSOR;
+				term->dcursor->prev->flag |= FT_CURSOR;
+				term->dcursor = term->dcursor->prev;
+			}
+			i = term->col;
+			term->dcursor->flag &= ~FT_CURSOR;
+			tmp = term->dcursor->prev;
+			ctrl = term->dcursor->next;
+			while (--i)
+			{
+				if (tmp->flag & FT_FIRST)
+				{
+					sign |= 1;
+					aft = term->col - i;
+				}
+				if (ctrl->flag & FT_FIRST)
+				{
+					sign |= 2;
+					bef = term->col - i;
+				}
+				ctrl = ctrl->next;
+				tmp = tmp->prev;
+			}
+			//if (sign == 3)
+			//	tmp = term->dcursor;
+			//if (sign == 1)
+			//	tmp = ctrl;
+			term->dcursor = tmp;
+			tmp->flag |= FT_CURSOR;
+		}
 		else if (key == KEY_DOWN)
-			ft_dprintf(STDIN_FILENO, "\\/\n");
+		{
+			if (term->row == 1)
+				continue ;
+			if (term->col == 1)
+			{
+				term->dcursor->flag &= ~ FT_CURSOR;
+				term->dcursor->prev->flag |= FT_CURSOR;
+				term->dcursor = term->dcursor->next;
+			}
+			i = term->col;
+			term->dcursor->flag &= ~FT_CURSOR;
+			tmp = term->dcursor;
+			while (i--)
+				tmp = tmp->next;
+			term->dcursor = tmp;
+			tmp->flag |= FT_CURSOR;
+		}
 		else if (key == KEY_RIGHT)
 		{
 			term->dcursor->flag &= ~ FT_CURSOR;
@@ -63,7 +122,7 @@ void	s_resize(int signo)
 	{
 		g_term->flag = 1;
 		display_arg(g_term);
-		g_term->
+		g_term->flag = 0;
 	}
 }
 
