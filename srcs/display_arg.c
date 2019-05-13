@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/13 15:46:43 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/13 19:05:08 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,13 +70,13 @@ void	print_column(t_term *term, int col, int row, int offset)
 		while (c < col)
 		{
 			if (tmp && tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
-				ft_dprintf(term->fd, "%s%s%s%s%*c",FT_UNDER, FT_RED, tmp->txt,
-					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+				ft_dprintf(term->fd, "%s%s%s%s%-*c",FT_REV, FT_UNDER, tmp->txt,
+					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, '*');
 			else if (tmp && tmp->flag & FT_CURSOR)
 				ft_dprintf(term->fd, "%s%s%s%*c",FT_UNDER, tmp->txt,
 					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
 			else if (tmp && tmp->flag & FT_SELECTED)
-				ft_dprintf(term->fd, "%s%s%s%*c",FT_RED, tmp->txt,
+				ft_dprintf(term->fd, "%s%s%s%*c",FT_REV, tmp->txt,
 					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
 			else if (tmp)
 				ft_dprintf(term->fd, "%-*s",
@@ -131,7 +131,7 @@ void	display_arg(t_term *term)
 		ft_dprintf(STDERR_FILENO, "ft_select: could not clear the screen.\n");
 		return ;
 	}
-	if (!(term->av) || get_winsize(term, &col, &row) || term->maxlen > col)
+	if (!(term->av) || get_winsize(term, &col, &row) /*|| term->maxlen > col*/)
 		return ;
 	col = col_per_row(term, col, &offset);
 	row = term->ac / col;

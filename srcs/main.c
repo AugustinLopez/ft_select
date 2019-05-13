@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/13 15:40:53 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/13 19:16:40 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ long				read_keypress(t_term *term)
 			if (term->dcursor->flag & FT_LINE)
 			{
 				aft = 1;
-				while (aft++ < term->col && !(term->dcursor->next->flag && FT_FIRST))
+				while (aft++ < term->col && !(term->dcursor->next->flag & FT_LINE))
 					term->dcursor = term->dcursor->next;
 				term->dcursor->flag |= FT_CURSOR;
 			}
@@ -80,9 +80,10 @@ long				read_keypress(t_term *term)
 				continue ;
 			if (term->col == 1)
 			{
-				term->dcursor->flag &= ~ FT_CURSOR;
+				term->dcursor->flag &= ~FT_CURSOR;
 				term->dcursor->prev->flag |= FT_CURSOR;
 				term->dcursor = term->dcursor->prev;
+				continue ;
 			}
 			i = term->col;
 			term->dcursor->flag &= ~FT_CURSOR;
@@ -109,9 +110,10 @@ long				read_keypress(t_term *term)
 				continue ;
 			if (term->col == 1)
 			{
-				term->dcursor->flag &= ~ FT_CURSOR;
+				term->dcursor->flag &= ~FT_CURSOR;
 				term->dcursor->next->flag |= FT_CURSOR;
 				term->dcursor = term->dcursor->next;
+				continue ;
 			}
 			i = term->col;
 			term->dcursor->flag &= ~FT_CURSOR;
@@ -214,7 +216,7 @@ int					main(int ac, char **av)
 {
 	t_term	term;
 	long	mem;
-
+	
 	term.name = 0;
 	term.flag = 0;
 	if (init_select(&term, ac, av) || !(term.name = get_terminal(&term)))
@@ -229,7 +231,25 @@ int					main(int ac, char **av)
 	signal_test();
 	mem = read_keypress(&term);
 	load_saved_terminal(&term);
+	term.dcursor = term.dlist;
+	mem = 0;
+	while (1)
+	{
+		if (term.dcursor->flag & FT_SELECTED)
+		{
+			if (!mem)
+			{	
+				ft_dprintf(STDOUT_FILENO, "%s", term.dcursor->txt);
+				mem = 1;
+			}
+			else
+				ft_dprintf(STDOUT_FILENO, " %s", term.dcursor->txt);
+		}
+		term.dcursor = term.dcursor->next;
+		if (term.dcursor->flag & FT_FIRST)
+			break ;
+	}
+	ft_dprintf(STDOUT_FILENO, "\n");
 	ft_dlistdel(&(term.dlist));
-	ft_printf("%zu %lc\n",term.maxlen, mem);
 	return (0);
 }
