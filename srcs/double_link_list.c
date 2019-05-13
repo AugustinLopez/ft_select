@@ -12,7 +12,7 @@
 
 #include <ft_select.h>
 
-t_dlist		*ft_dlistnew(char *src, int flag, t_dlist *prev)
+t_dlist				*ft_dlistnew(char *src, int flag, t_dlist *prev)
 {
 	t_dlist	*new;
 
@@ -28,7 +28,7 @@ t_dlist		*ft_dlistnew(char *src, int flag, t_dlist *prev)
 	return (new);
 }
 
-t_dlist		*ft_dlistfree(t_dlist **elem)
+t_dlist				*ft_dlistfree(t_dlist **elem)
 {
 	t_dlist	*tmp;
 	int		x;
@@ -46,7 +46,7 @@ t_dlist		*ft_dlistfree(t_dlist **elem)
 	return (tmp);
 }
 
-void		ft_dlistdel(t_dlist **elem)
+void				ft_dlistdel(t_dlist **elem)
 {
 	t_dlist	*tmp;
 	t_dlist	*last;
@@ -71,3 +71,55 @@ void		ft_dlistdel(t_dlist **elem)
 		}
 	}
 }
+
+/*
+** RETURN_DLIST: join both end of the circular list + final return value.
+** Should be put at the end of FEED_DLIST when norm is no longer an issue.
+** DEBUG:
+** 1st if: case where av is only composed of empty arg.
+*/
+
+static inline int	return_dlist(t_term *term)
+{
+	if (!(term->dlist))
+		return (ERR_EMPTYARG);
+	term->dlist->next = term->dcursor;
+	term->dcursor->prev = term->dlist;
+	term->dlist = term->dcursor;
+	return (0);
+}
+
+/*
+** FEED_DLIST: feed the circular list of argument. Call by init_select
+** The double-link structure will be easier to handle in the long run.
+** DEBUG CASE:
+** 1st if: Empty element are completely ignored
+** 3rd if: return on malloc error.
+*/
+
+int					feed_dlist(t_term *term, char **av)
+{
+	int	i;
+	int	len;
+
+	len = 0;
+	i = 0;
+	while (av[++i])
+	{
+		if (!av[i][0] && (term->ac)--)
+			continue ;
+		if (!term->dcursor)
+		{
+			term->dcursor = ft_dlistnew(av[i], FT_CURSOR | FT_FIRST, 0);
+			term->dlist = term->dcursor;
+		}
+		else
+			term->dlist = ft_dlistnew(av[i], 0, term->dlist);
+		if (!term->dlist)
+			return (ERR_MEM);
+		len = ft_strlen(av[i]);
+		term->maxlen = len > term->maxlen ? len : term->maxlen;
+	}
+	return (return_dlist(term));
+}
+

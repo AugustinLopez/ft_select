@@ -12,54 +12,30 @@
 
 #include <ft_select.h>
 
-static inline int	feed_dlist(t_term *term, char **av)
-{
-	int	i;
-	int	len;
 
-	len = 0;
-	i = 0;
-	while (av[++i])
-	{
-		if (!av[i][0])
-		{
-			(term->ac)--;
-			continue ;
-		}
-		if (i == 1)
-		{
-			term->dcursor = ft_dlistnew(av[i], FT_CURSOR | FT_FIRST, 0);
-			term->dlist = term->dcursor;
-		}
-		else
-			term->dlist = ft_dlistnew(av[i], 0, term->dlist);
-		if (!term->dlist)
-			return (-1);
-		len = av[i][0] ? ft_strlen(av[i]) : 0; //do i need to condition ?
-		term->maxlen = len > term->maxlen ? len : term->maxlen;
-	}
-	term->dlist->next = term->dcursor;
-	term->dcursor->prev = term->dlist;
-	term->dlist = term->dcursor;
-	return (0);
-}
+/*
+** The global variable is a pointer to our structure. Used for signal handling.
+*/
 
+/*
+** return different error if usage ? should return 0 in the end
+*/
 int					init_select(t_term *term, int ac, char **av)
 {
+	int	ret;
+
 	if (ac < 2)
-	{
-		ft_dprintf(STDOUT_FILENO, "usage: ./ft_select [argument ...]\n");
-		return (-1);
-	}
+		return (errmsg(ERR_USAGE));
+	term->name = 0;
+	term->flag = 0;
 	term->ac = ac - 1;
 	term->av = av + 1;
 	term->maxlen = 1;
+	term->dlist = 0;
+	term->dcursor = 0;
+	if ((ret = feed_dlist(term, av)))
+		return (errmsg(ret));
 	g_term = term;
-	if (feed_dlist(term, av))
-	{
-		ft_dprintf(STDERR_FILENO, "ft_select: not enough memory to start.\n");
-		return (-1);
-	}
 	return (0);
 }
 
@@ -76,30 +52,56 @@ int					init_select(t_term *term, int ac, char **av)
 ** we use t and s so we can reload if suspended + TERM unset
 */
 
-char				*get_terminal(t_term *term)
+
+int				errmsg(int error)
 {
-	int		ret;
+	if (error == ERR_USAGE)
+		ft_dprintf(STDOUT_FILENO, "usage: ./ft_select [argument ...]\n");
+	else if (error == ERR_MEM)
+		ft_dprintf(STDERR_FILENO, "ft_select: not enough memory.\n");
+	else if (error == ERR_EMPTYARG)
+		ft_dprintf(STDERR_FILENO, "ft_select: arguments are empty.\n");
+	else if (error == ERR_TERMENV)
+		ft_dprintf(STDERR_FILENO,
+			"ft_select: could not get terminal environment variable.\n");
+	else if (error == ERR_BADFDTTY)
+		ft_dprintf(STDERR_FILENO, "ft_select: fd not linked to terminal.\n");
+	else if (error == ERR_BADSTDIN)
+		ft_dprintf(STDERR_FILENO,
+			"ft_select: STDIN not linked to terminal. Try the -t option.\n"); //bonus
+	else if (error == ERR_NOTERMINFO)
+		ft_dprintf(STDERR_FILENO, "ft_select: no information on terminal.\n");
+	else if (error == ERR_TCGET || error == ERR_TCSET || error == ERR_TPUTS)
+		ft_dprintf(STDERR_FILENO, "ft_select: cannot modify terminal.\n");
+	return (error);
+}
+
+/*
+** Note that if term->name already exist (after Ctrl->Z for instance) it will
+** be used if TERM has ben unset before relaunching the program.
+*/
+
+int					get_terminal(t_term *term)
+{
 	char	buff[512];
 	char	*t;
 
 	if (!(t = getenv("TERM")))
 	{
 		if (!term->name)
-			ft_dprintf(STDERR_FILENO, "ft_select: could not get TERM.\n");
-		else
-			t = term->name;
+			return (errmsg(ERR_TERMENV));
 	}
-	term->name = t;
+	else
+		term->name = t;
 	term->fd = STDIN_FILENO;
 	if (!isatty(term->fd))
-		ft_dprintf(STDERR_FILENO, "ft_select: STDIN not linked to terminal.\n");
-	else if ((ret = tgetent(buff, term->name)) < 1)
-		ret < 0 ?
-			ft_dprintf(STDERR_FILENO, "ft_select: no terminfo data found.\n") :
-			ft_dprintf(STDERR_FILENO, "ft_select: could not find %s.\n", term->name);
+		return (term->fd == STDIN_FILENO ?
+			errmsg(ERR_BADSTDIN) : errmsg(ERR_BADFDTTY));
+	else if (tgetent(buff, term->name) < 1)
+		return (errmsg(ERR_NOTERMINFO));
 	else
-		return (term->name);
-	return (NULL);
+		return (0);
+	return (-1);
 }
 
 /*
@@ -121,25 +123,19 @@ int		load_new_terminal(t_term *term)
 	ret = tcgetattr(term->fd, &term->saved);
 	ret += tcgetattr(term->fd, &term->current);
 	if (ret)
-	{
-		ft_dprintf(STDERR_FILENO, "ft_select: error when getting terminal.\n");
-		return (ret);
-	}
+		return (errmsg(ERR_TCGET));
 	term->current.c_lflag &= ~(ICANON | ECHO);
 	term->current.c_cc[VMIN] = 1;
 	term->current.c_cc[VTIME] = 0;
 	ret += tcsetattr(term->fd, TCSANOW, &term->current);
 	if (ret)
-	{
-		ft_dprintf(STDERR_FILENO, "ft_select: error when setting terminal.\n");
-		return (ret);
-	}
+		return (errmsg(ERR_TCSET));
 	ret += tputs(tgetstr("ti", NULL), 1, putchar_in);
 	ret += tputs(tgetstr("vi", NULL), 1, putchar_in);
 	ret += tputs(tgetstr("ho", NULL), 1, putchar_in);
 	if (ret)
-		ft_dprintf(STDERR_FILENO, "ft_select: error when loading screen.\n");
-	return (ret);
+		return (errmsg(ERR_TPUTS));
+	return (0);
 }
 
 int		load_saved_terminal(t_term *term)
@@ -147,12 +143,11 @@ int		load_saved_terminal(t_term *term)
 	int	ret;
 
 	if ((ret = tcsetattr(term->fd, TCSANOW, &term->saved)))
-		ft_dprintf(STDERR_FILENO,
-			"ft_select: error when resetting terminal.\n");
-	ret += tputs(tgetstr("te", NULL), 1, putchar_in);
+		return (errmsg(ERR_TCSET));
+	ret = tputs(tgetstr("te", NULL), 1, putchar_in);
 	ret += tputs(tgetstr("ve", NULL), 1, putchar_in);
 	if (ret)
-		ft_dprintf(STDERR_FILENO, "ft_select: error when resetting screen.\n");
+		return (errmsg(ERR_TPUTS));
 	return (ret);
 }
 

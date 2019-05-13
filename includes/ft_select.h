@@ -60,6 +60,17 @@
 # define CTLR_AT 0L
 # define CTRL_A 1L
 
+# define ERR_USAGE 1
+# define ERR_MEM 2
+# define ERR_EMPTYARG 3
+# define ERR_TERMENV 4
+# define ERR_BADFDTTY 5
+# define ERR_BADSTDIN 6
+# define ERR_NOTERMINFO 7
+# define ERR_TCGET 8
+# define ERR_TCSET 9
+# define ERR_TPUTS 10
+
 /*
 ** --- Structure & Global ------------------------------------------------------
 */
@@ -107,7 +118,7 @@ t_term	*g_term;
 ** ---- Prototype --------------------------------------------------------------
 */
 
-char					*get_terminal(t_term *term);
+int						get_terminal(t_term *term);
 int						init_select(t_term *term, int ac, char **av);
 int						load_new_terminal(t_term *term);
 int						load_saved_terminal(t_term *term);
@@ -117,4 +128,6 @@ void					signal_test(void);
 t_dlist					*ft_dlistnew(char *src, int flag, t_dlist *prev);
 t_dlist					*ft_dlistfree(t_dlist **elem);
 void					ft_dlistdel(t_dlist **elem);
+int						feed_dlist(t_term *term, char **av);
+int						errmsg(int error);
 #endif

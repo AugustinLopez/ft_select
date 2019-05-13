@@ -35,28 +35,25 @@ long				read_keypress(t_term *term)
 {
 	long	key;
 	long	mem;
-	int		ret;
 	t_dlist	*tmp;
-	int		sign;
 	int		i;
 	int		bef;
 	int		aft;
+	int		ret;
 
 	(void)bef;
 	(void)aft;
 	bef = 0;
 	aft = 0;
 	mem = 0;
-	sign = 0;
 	while (1)
 	{
 		key = 0;
 		display_arg(term);
 		ret = read(term->fd, &key, sizeof(key));
+		(void)ret;
 		set_line(term);
 		//parcourir ici pour setup flag : start of line
-		ret = 0;
-		(void)ret;
 
 		if (key == KEY_LEFT)
 		{
@@ -191,7 +188,7 @@ void	s_fg(int signo)
 {
 	if (signo == SIGCONT)
 	{
-		if (!(g_term->name = get_terminal(g_term))
+		if (get_terminal(g_term)
 			|| load_new_terminal(g_term))
 		{
 			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
@@ -217,9 +214,7 @@ int					main(int ac, char **av)
 	t_term	term;
 	long	mem;
 	
-	term.name = 0;
-	term.flag = 0;
-	if (init_select(&term, ac, av) || !(term.name = get_terminal(&term)))
+	if (init_select(&term, ac, av) || get_terminal(&term))
 		return (1);
 	if (load_new_terminal(&term))
 	{
