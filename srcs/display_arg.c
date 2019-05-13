@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/09 15:50:48 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/13 15:46:43 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,23 +64,29 @@ void	print_column(t_term *term, int col, int row, int offset)
 	r = 0;
 	c = 0;
 	tmp = term->dlist;
-	ft_dprintf(STDIN_FILENO, "%d:%d\n", term->col, term->row);
+	ft_dprintf(term->fd, "%d:%d\n", term->col, term->row);
 	while (r < row)
 	{
 		while (c < col)
 		{
-			if (tmp && tmp->flag & FT_CURSOR)
-				ft_dprintf(STDIN_FILENO, "%s%s%s%*c",FT_UNDER, tmp->txt,
+			if (tmp && tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
+				ft_dprintf(term->fd, "%s%s%s%s%*c",FT_UNDER, FT_RED, tmp->txt,
+					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+			else if (tmp && tmp->flag & FT_CURSOR)
+				ft_dprintf(term->fd, "%s%s%s%*c",FT_UNDER, tmp->txt,
+					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+			else if (tmp && tmp->flag & FT_SELECTED)
+				ft_dprintf(term->fd, "%s%s%s%*c",FT_RED, tmp->txt,
 					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
 			else if (tmp)
-				ft_dprintf(STDIN_FILENO, "%-*s",
+				ft_dprintf(term->fd, "%-*s",
 					term->maxlen + offset, tmp->txt);
 			if (!tmp || (tmp->next->flag & FT_FIRST))
 				break ;
 			tmp = tmp->next;
 			c++;
 		}
-		ft_dprintf(STDIN_FILENO, "\n");
+		ft_dprintf(term->fd, "\n");
 		if (!tmp || tmp->flag & FT_FIRST)
 			break ;
 		c = 0;
@@ -88,11 +94,11 @@ void	print_column(t_term *term, int col, int row, int offset)
 	}
 }
 
-int		get_winsize(int *col, int *row)
+int		get_winsize(t_term *term, int *col, int *row)
 {
 	struct winsize	w;
 
-	if (ioctl(STDIN_FILENO, TIOCGWINSZ, &w) < 0)
+	if (ioctl(term->fd, TIOCGWINSZ, &w) < 0)
 	{
 		ft_dprintf(STDERR_FILENO, "ft_select: could not get terminal size.\n");
 		return (-1);
@@ -125,7 +131,7 @@ void	display_arg(t_term *term)
 		ft_dprintf(STDERR_FILENO, "ft_select: could not clear the screen.\n");
 		return ;
 	}
-	if (!(term->av) || get_winsize(&col, &row) || term->maxlen > col)
+	if (!(term->av) || get_winsize(term, &col, &row) || term->maxlen > col)
 		return ;
 	col = col_per_row(term, col, &offset);
 	row = term->ac / col;

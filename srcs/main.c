@@ -6,11 +6,30 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/09 16:08:44 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/13 15:40:53 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
+
+void				set_line(t_term *term)
+{
+	t_dlist	*tmp;
+	int		i;
+
+	i = 0;
+	tmp = term->dlist;
+	while (1)
+	{
+		if (!(i++ % term->col) || (tmp->flag & FT_FIRST))
+			tmp->flag |= FT_LINE;
+		else
+			tmp->flag &= ~FT_LINE;
+		tmp = tmp->next;
+		if (tmp->flag & FT_FIRST)
+			return ;
+	}
+}
 
 long				read_keypress(t_term *term)
 {
@@ -18,7 +37,6 @@ long				read_keypress(t_term *term)
 	long	mem;
 	int		ret;
 	t_dlist	*tmp;
-	t_dlist	*ctrl;
 	int		sign;
 	int		i;
 	int		bef;
@@ -34,14 +52,27 @@ long				read_keypress(t_term *term)
 	{
 		key = 0;
 		display_arg(term);
-		ret = read(STDIN_FILENO, &key, sizeof(key));
+		ret = read(term->fd, &key, sizeof(key));
+		set_line(term);
+		//parcourir ici pour setup flag : start of line
 		ret = 0;
 		(void)ret;
+
 		if (key == KEY_LEFT)
 		{
 			term->dcursor->flag &= ~ FT_CURSOR;
-			term->dcursor->prev->flag |= FT_CURSOR;
-			term->dcursor = term->dcursor->prev;
+			if (term->dcursor->flag & FT_LINE)
+			{
+				aft = 1;
+				while (aft++ < term->col && !(term->dcursor->next->flag && FT_FIRST))
+					term->dcursor = term->dcursor->next;
+				term->dcursor->flag |= FT_CURSOR;
+			}
+			else
+			{
+				term->dcursor->prev->flag |= FT_CURSOR;
+				term->dcursor = term->dcursor->prev;
+			}
 		}
 		else if (key == KEY_UP)
 		{
@@ -55,27 +86,20 @@ long				read_keypress(t_term *term)
 			}
 			i = term->col;
 			term->dcursor->flag &= ~FT_CURSOR;
-			tmp = term->dcursor->prev;
-			ctrl = term->dcursor->next;
-			while (--i)
+			tmp = term->dcursor;
+			aft = 0;
+			while (i--)
 			{
+				aft++;
 				if (tmp->flag & FT_FIRST)
 				{
-					sign |= 1;
-					aft = term->col - i;
+					if (term->ac % term->col >= aft)
+						i = term->ac % term->col - aft;
+					else
+						i += (term->ac % term->col);
 				}
-				if (ctrl->flag & FT_FIRST)
-				{
-					sign |= 2;
-					bef = term->col - i;
-				}
-				ctrl = ctrl->next;
 				tmp = tmp->prev;
 			}
-			//if (sign == 3)
-			//	tmp = term->dcursor;
-			//if (sign == 1)
-			//	tmp = ctrl;
 			term->dcursor = tmp;
 			tmp->flag |= FT_CURSOR;
 		}
@@ -86,22 +110,47 @@ long				read_keypress(t_term *term)
 			if (term->col == 1)
 			{
 				term->dcursor->flag &= ~ FT_CURSOR;
-				term->dcursor->prev->flag |= FT_CURSOR;
+				term->dcursor->next->flag |= FT_CURSOR;
 				term->dcursor = term->dcursor->next;
 			}
 			i = term->col;
 			term->dcursor->flag &= ~FT_CURSOR;
 			tmp = term->dcursor;
+			aft = 0;
 			while (i--)
+			{
+				aft++;
+				if (tmp->next->flag & FT_FIRST)
+				{
+					if (term->ac % term->col >= aft)
+						i = term->ac % term->col - aft;
+					else
+						i += (term->ac % term->col);
+				}
 				tmp = tmp->next;
+			}
 			term->dcursor = tmp;
 			tmp->flag |= FT_CURSOR;
+
 		}
 		else if (key == KEY_RIGHT)
 		{
-			term->dcursor->flag &= ~ FT_CURSOR;
-			term->dcursor->next->flag |= FT_CURSOR;
-			term->dcursor = term->dcursor->next;
+			term->dcursor->flag &= ~FT_CURSOR;
+			if (term->dcursor->next->flag & FT_LINE)
+			{
+				while (!(term->dcursor->flag & FT_LINE))
+					term->dcursor = term->dcursor->prev;
+				term->dcursor->flag |= FT_CURSOR;
+			}
+			else
+			{
+				term->dcursor->next->flag |= FT_CURSOR;
+				term->dcursor = term->dcursor->next;
+			}
+		}
+		else if (key == KEY_SPACE)
+		{
+			term->dcursor->flag ^= FT_SELECTED;
 		}
 		else if (key == KEY_ESCAPE)
 		{
@@ -110,7 +159,7 @@ long				read_keypress(t_term *term)
 		else
 		{
 			mem = key;
-			ft_dprintf(STDIN_FILENO, "%lc\n",key);
+			ft_dprintf(term->fd, "%lc\n",key);
 		}
 	}
 	return (0);
@@ -132,20 +181,7 @@ void	s_ctrl_z(int signo)
 	{
 		load_saved_terminal(g_term);
 		signal(SIGTSTP, SIG_DFL);
-		ioctl(STDIN_FILENO, TIOCSTI, "\x1A");
-	}
-}
-
-void	free_list(t_term *term)
-{
-	t_list	*tmp;
-
-	tmp = term->list_av;
-	while (tmp)
-	{
-		term->list_av = tmp->next;
-		free(tmp);
-		tmp = term->list_av;
+		ioctl(g_term->fd, TIOCSTI, "\x1A");
 	}
 }
 
@@ -153,12 +189,12 @@ void	s_fg(int signo)
 {
 	if (signo == SIGCONT)
 	{
-		if (!(g_term->name = get_terminal(g_term->name))
+		if (!(g_term->name = get_terminal(g_term))
 			|| load_new_terminal(g_term))
 		{
 			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
 			load_saved_terminal(g_term);
-			free_list(g_term);
+			ft_dlistdel(&(g_term->dlist));
 			exit(1);
 		}
 		signal_test();
@@ -181,12 +217,11 @@ int					main(int ac, char **av)
 
 	term.name = 0;
 	term.flag = 0;
-	if (!init_select(&term, &ac, &av) || !(term.name = get_terminal(term.name)))
+	if (init_select(&term, ac, av) || !(term.name = get_terminal(&term)))
 		return (1);
 	if (load_new_terminal(&term))
 	{
 		load_saved_terminal(&term);
-		free_list(&term);
 		ft_dlistdel(&(term.dlist));
 		return (1);
 	}
@@ -194,7 +229,6 @@ int					main(int ac, char **av)
 	signal_test();
 	mem = read_keypress(&term);
 	load_saved_terminal(&term);
-	free_list(&term);
 	ft_dlistdel(&(term.dlist));
 	ft_printf("%zu %lc\n",term.maxlen, mem);
 	return (0);

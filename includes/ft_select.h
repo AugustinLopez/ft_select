@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/09 16:08:55 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/13 15:42:30 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,14 +47,16 @@
 */
 
 # define FT_FIRST 1
-# define FT_CURSOR 2
-# define FT_SELECTED 4
+# define FT_LINE 2
+# define FT_CURSOR 4
+# define FT_SELECTED 8
 
 # define KEY_LEFT 4479771L
 # define KEY_UP 4283163L
 # define KEY_DOWN 4348699L
 # define KEY_RIGHT 4414235L
 # define KEY_ESCAPE 27L
+# define KEY_SPACE 32L
 # define CTLR_AT 0L
 # define CTRL_A 1L
 
@@ -64,6 +66,7 @@
 
 /*
 ** term.ac / term.av: reproduce those taken from main.
+** term.fd = fd of /dev/tty
 ** term.current / term.savec: to modify and restore terminal.
 ** term.name: name of active terminal.
 ** term.maxlen: len of the longest argument to be printed, column size.
@@ -84,6 +87,7 @@ typedef struct			s_term
 {
 	int					ac;
 	char				**av;
+	int					fd;
 	t_list				*list_av;
 	t_dlist				*dlist;
 	t_dlist				*dcursor;
@@ -103,8 +107,8 @@ t_term	*g_term;
 ** ---- Prototype --------------------------------------------------------------
 */
 
-char					*get_terminal(char *s);
-int						init_select(t_term *term, int *ac, char ***av);
+char					*get_terminal(t_term *term);
+int						init_select(t_term *term, int ac, char **av);
 int						load_new_terminal(t_term *term);
 int						load_saved_terminal(t_term *term);
 int						putchar_in(int c);

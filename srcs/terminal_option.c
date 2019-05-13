@@ -6,61 +6,66 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/09 15:19:14 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/13 14:01:35 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
 
-int	init_select(t_term *term, int *ac, char ***av)
+static inline int	feed_dlist(t_term *term, char **av)
 {
-	int		i;
-	int		len;
-	t_list	*tmp;
+	int	i;
+	int	len;
 
-	if (*ac < 2)
-	{
-		ft_dprintf(STDOUT_FILENO, "usage: ./ft_select [argument ...]\n");
-		return (0);
-	}
-	(*av)++;
-	(*ac)--;
-	term->ac = *ac;
-	term->av = *av;
-	term->maxlen = 1;
-	g_term = term;
-	i = 0;
 	len = 0;
-	tmp = 0;;
-	while ((*av)[i++])
+	i = 0;
+	while (av[++i])
 	{
-		if (tmp == 0)
+		if (!av[i][0])
 		{
-			term->dcursor = ft_dlistnew((*av)[i - 1], FT_CURSOR | FT_FIRST, 0);
+			(term->ac)--;
+			continue ;
+		}
+		if (i == 1)
+		{
+			term->dcursor = ft_dlistnew(av[i], FT_CURSOR | FT_FIRST, 0);
 			term->dlist = term->dcursor;
-			tmp = ft_lstnew(0, 0); //don't forget to return if malloc
-			term->list_av = tmp;
-			tmp->pv = (*av)[i - 1];
-			tmp->zu = FT_CURSOR | FT_FIRST; //to be replaced by selected
 		}
 		else
-		{
-			term->dlist = ft_dlistnew((*av)[i - 1], 0, term->dlist);
-			tmp->next = ft_lstnew(0, 0); //don't forget to return if malloc
-			tmp->next->pv = (*av)[i - 1];
-			tmp->next->zu = 0; //to be replaced by not selected
-			tmp = tmp->next;
-		}
-		len = (*av)[i - 1][0] ? ft_strlen((*av)[i - 1]) : 0;
+			term->dlist = ft_dlistnew(av[i], 0, term->dlist);
+		if (!term->dlist)
+			return (-1);
+		len = av[i][0] ? ft_strlen(av[i]) : 0; //do i need to condition ?
 		term->maxlen = len > term->maxlen ? len : term->maxlen;
 	}
 	term->dlist->next = term->dcursor;
 	term->dcursor->prev = term->dlist;
 	term->dlist = term->dcursor;
-	return (1);
+	return (0);
+}
+
+int					init_select(t_term *term, int ac, char **av)
+{
+	if (ac < 2)
+	{
+		ft_dprintf(STDOUT_FILENO, "usage: ./ft_select [argument ...]\n");
+		return (-1);
+	}
+	term->ac = ac - 1;
+	term->av = av + 1;
+	term->maxlen = 1;
+	g_term = term;
+	if (feed_dlist(term, av))
+	{
+		ft_dprintf(STDERR_FILENO, "ft_select: not enough memory to start.\n");
+		return (-1);
+	}
+	return (0);
 }
 
 /*
+ * UPDATE: Not using /dev/tty: I would need to use global outside of signal.
+ * I will NOT use singleton in C: it is just an obfuscated global.
 ** Why using STDIN instead of STDOUT or STDERR?
 ** 1. Writing to STDOUT will cause issue with command redirection.
 **    Moreover, with ``, isatty(STDOUT_FILENO) return 0.
@@ -71,7 +76,7 @@ int	init_select(t_term *term, int *ac, char ***av)
 ** we use t and s so we can reload if suspended + TERM unset
 */
 
-char	*get_terminal(char *s)
+char				*get_terminal(t_term *term)
 {
 	int		ret;
 	char	buff[512];
@@ -79,20 +84,21 @@ char	*get_terminal(char *s)
 
 	if (!(t = getenv("TERM")))
 	{
-		if (!s)
+		if (!term->name)
 			ft_dprintf(STDERR_FILENO, "ft_select: could not get TERM.\n");
 		else
-			t = s;
+			t = term->name;
 	}
-	s = t;
-	if (!isatty(STDIN_FILENO))
+	term->name = t;
+	term->fd = STDIN_FILENO;
+	if (!isatty(term->fd))
 		ft_dprintf(STDERR_FILENO, "ft_select: STDIN not linked to terminal.\n");
-	else if ((ret = tgetent(buff, s)) < 1)
+	else if ((ret = tgetent(buff, term->name)) < 1)
 		ret < 0 ?
 			ft_dprintf(STDERR_FILENO, "ft_select: no terminfo data found.\n") :
-			ft_dprintf(STDERR_FILENO, "ft_select: could not find %s.\n", s);
+			ft_dprintf(STDERR_FILENO, "ft_select: could not find %s.\n", term->name);
 	else
-		return (s);
+		return (term->name);
 	return (NULL);
 }
 
@@ -112,8 +118,8 @@ int		load_new_terminal(t_term *term)
 {
 	int	ret;
 
-	ret = tcgetattr(STDIN_FILENO, &term->saved);
-	ret += tcgetattr(STDIN_FILENO, &term->current);
+	ret = tcgetattr(term->fd, &term->saved);
+	ret += tcgetattr(term->fd, &term->current);
 	if (ret)
 	{
 		ft_dprintf(STDERR_FILENO, "ft_select: error when getting terminal.\n");
@@ -122,7 +128,7 @@ int		load_new_terminal(t_term *term)
 	term->current.c_lflag &= ~(ICANON | ECHO);
 	term->current.c_cc[VMIN] = 1;
 	term->current.c_cc[VTIME] = 0;
-	ret += tcsetattr(STDIN_FILENO, TCSANOW, &term->current);
+	ret += tcsetattr(term->fd, TCSANOW, &term->current);
 	if (ret)
 	{
 		ft_dprintf(STDERR_FILENO, "ft_select: error when setting terminal.\n");
@@ -140,7 +146,7 @@ int		load_saved_terminal(t_term *term)
 {
 	int	ret;
 
-	if ((ret = tcsetattr(STDIN_FILENO, TCSANOW, &term->saved)))
+	if ((ret = tcsetattr(term->fd, TCSANOW, &term->saved)))
 		ft_dprintf(STDERR_FILENO,
 			"ft_select: error when resetting terminal.\n");
 	ret += tputs(tgetstr("te", NULL), 1, putchar_in);
@@ -149,6 +155,11 @@ int		load_saved_terminal(t_term *term)
 		ft_dprintf(STDERR_FILENO, "ft_select: error when resetting screen.\n");
 	return (ret);
 }
+
+/*
+** If I used /dev/tty, i would need a global to do it correctly
+** (IE: even if i could do without global it would be hard, ugly and hacky)
+*/
 
 int		putchar_in(int c)
 {

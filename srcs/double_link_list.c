@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/09 14:02:23 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/09 15:19:37 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/13 14:05:19 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,11 @@ void		ft_dlistdel(t_dlist **elem)
 	while (tmp)
 	{
 		*elem = (*elem)->next;
+		if (*elem == tmp)
+		{
+			free(tmp);
+			break ;
+		}
 		free(tmp);
 		tmp = *elem;
 		if (tmp == last)
