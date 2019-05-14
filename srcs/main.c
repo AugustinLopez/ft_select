@@ -183,6 +183,7 @@ void	s_resize(int signo)
 
 /*
 ** ioctl does not works on WSL :'(
+** raise would probably be better anyway
 */
 
 void	s_ctrl_z(int signo)
@@ -191,6 +192,7 @@ void	s_ctrl_z(int signo)
 	{
 		load_saved_terminal(g_term);
 		signal(SIGTSTP, SIG_DFL);
+		//raise(SIGTSTP);
 		ioctl(g_term->fd, TIOCSTI, "\x1A");
 	}
 }
