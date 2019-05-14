@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 12:17:26 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/14 17:18:07 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 
 static inline void	s_resize(int signo)
 {
-	if (signo == SIGWINCH && g_term->flag == 0)
+	if (signo == SIGWINCH && !(g_term->flag & SELECT_RESIZE))
 	{
-		g_term->flag = 1;
+		g_term->flag |= SELECT_RESIZE;
 		display_arg(g_term);
-		g_term->flag = 0;
+		g_term->flag &= ~SELECT_RESIZE;
 	}
 }
 

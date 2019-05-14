@@ -6,12 +6,43 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 12:42:20 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/14 18:43:44 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
 
+static inline int	select_available_option(char *av, int *flag)
+{
+	int	i;
+
+	while (*(++av))
+	{
+		if (!(i = ft_strchri("mpcG", av[0])))
+			return (-1);
+		*flag |= (1 << (i - 1));
+	}
+	if (*flag & SELECT_C)
+		*flag &= ~SELECT_M;
+	return (0);
+}
+
+
+int					select_option(int ac, char **av, int *flag)
+{
+	int	i;
+
+	*flag = 0;
+	i = 0;
+	while (++i < ac && av[i][0] == '-' && av[i][1])
+	{
+		if (av[i][1] == '-' && !av[i][2])
+			return (i + 1);
+		if (select_available_option(av[i], flag))
+			return (0);
+	}
+	return (i);
+}
 
 /*
 ** The global variable is a pointer to our structure. Used for signal handling.
@@ -24,16 +55,20 @@ int					init_select(t_term *term, int ac, char **av)
 {
 	int	ret;
 
-	if (ac < 2)
+	if (ac < 2 || !(ret = select_option(ac, av, &(term->flag))))
 		return (errmsg(ERR_USAGE));
 	term->name = 0;
-	term->flag = 0;
-	term->ac = ac - 1;
-	term->av = av + 1;
+	term->selected = 0;
+	term->ac = ac - ret;
+	term->av = av + ret;
 	term->maxlen = 1;
 	term->dlist = 0;
 	term->dcursor = 0;
-	if ((ret = feed_dlist(term, av)))
+	term->up = (term->flag & SELECT_M) ? arrow_up_mat : arrow_up_cir;
+	term->down = (term->flag & SELECT_M) ? arrow_down_mat : arrow_down_cir;
+	term->left = (term->flag & SELECT_M) ? arrow_left_mat : arrow_left_cir;
+	term->right = (term->flag & SELECT_M) ? arrow_right_mat : arrow_right_cir;
+	if ((ret = feed_dlist(term, av + ret - 1)))
 		return (errmsg(ret));
 	g_term = term;
 	return (0);
@@ -56,7 +91,8 @@ int					init_select(t_term *term, int ac, char **av)
 int				errmsg(int error)
 {
 	if (error == ERR_USAGE)
-		ft_dprintf(STDOUT_FILENO, "usage: ./ft_select [argument ...]\n");
+		ft_dprintf(STDOUT_FILENO,
+			"usage: ./ft_select [-mpc] [--] [arg1 arg2 ...]\n");
 	else if (error == ERR_MEM)
 		ft_dprintf(STDERR_FILENO, "ft_select: not enough memory.\n");
 	else if (error == ERR_EMPTYARG)

@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/13 15:42:30 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/14 18:43:27 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@
 # include <termios.h>
 # include <termcap.h>
 # include <sys/ioctl.h>
+# include <sys/stat.h>
 # include <signal.h>
 # include <errno.h>
 
@@ -50,6 +51,7 @@
 # define FT_LINE 2
 # define FT_CURSOR 4
 # define FT_SELECTED 8
+# define FT_DELETED 16
 
 # define KEY_LEFT 4479771L
 # define KEY_UP 4283163L
@@ -58,6 +60,7 @@
 # define KEY_ESCAPE 27L
 # define KEY_BACKSPACE 127L
 # define KEY_DELETE 2117294875L
+# define KEY_F1 5263131L
 
 # define CTLR_AT 0L
 # define CTRL_A 1L
@@ -72,6 +75,13 @@
 # define ERR_TCGET 8
 # define ERR_TCSET 9
 # define ERR_TPUTS 10
+# define ERR_KEYREAD 11
+
+# define SELECT_M 1
+# define SELECT_P 2
+# define SELECT_C 4
+# define SELECT_G 8
+# define SELECT_RESIZE 16
 
 /*
 ** --- Structure & Global ------------------------------------------------------
@@ -108,9 +118,14 @@ typedef struct			s_term
 	struct termios		current;
 	char				*name;
 	int					maxlen;
+	int					selected;
 	int					col;
 	int					row;
 	int					flag;
+	void				(*up)(struct s_term *);
+	void				(*down)(struct s_term *);
+	void				(*left)(struct s_term *);
+	void				(*right)(struct s_term *);
 }						t_term;
 
 t_term	*g_term;
@@ -121,6 +136,7 @@ t_term	*g_term;
 */
 
 int						get_terminal(t_term *term);
+long					read_keypress(t_term *term);
 int						init_select(t_term *term, int ac, char **av);
 int						load_new_terminal(t_term *term);
 int						load_saved_terminal(t_term *term);
@@ -132,4 +148,14 @@ t_dlist					*ft_dlistfree(t_dlist **elem);
 void					ft_dlistdel(t_dlist **elem);
 int						feed_dlist(t_term *term, char **av);
 int						errmsg(int error);
+void					signal_setup(void);
+
+void					arrow_up_cir(t_term *term);
+void					arrow_down_cir(t_term *term);
+void					arrow_left_cir(t_term *term);
+void					arrow_right_cir(t_term *term);
+void					arrow_up_mat(t_term *term);
+void					arrow_down_mat(t_term *term);
+void					arrow_left_mat(t_term *term);
+void					arrow_right_mat(t_term *term);
 #endif

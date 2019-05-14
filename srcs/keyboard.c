@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   keyboard.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 13:33:12 by aulopez          ###   ########.fr       */
+/*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
+/*   Updated: 2019/05/14 18:12:06 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,12 @@ int					setup_reader(t_term *term, long *key)
 	int		i;
 	int		ret;
 
+	if (term->flag & SELECT_C)
+	{
+		term->dlist->flag &= ~FT_FIRST;
+		term->dcursor->next->flag |= FT_FIRST;
+		term->dlist = term->dcursor->next;
+	}
 	display_arg(term);
 	*key = 0;
 	ret = read(term->fd, key, sizeof(key));
@@ -53,122 +59,63 @@ int					delete_arg(t_term *term)
 	}
 	if (term->dcursor == tmp)
 		return (1);
-	free(term->dcursor);
+	term->dcursor->flag |= FT_DELETED;
+	if (term->dcursor->flag & FT_SELECTED)
+	{
+		term->selected -= 1;
+		term->dcursor->flag &= ~FT_SELECTED;
+	}
 	term->dcursor = tmp;
 	term->ac--;
 	return (0);
 }
 
-void				arrow_left_mat(t_term *term)
+void				clear_all(t_term *term)
 {
-	int	i;
-
-	term->dcursor->flag &= ~FT_CURSOR;
-	if (term->dcursor->flag & FT_LINE)
-	{
-		i = 1;
-		while (i++ < term->col && !(term->dcursor->next->flag & FT_LINE))
-			term->dcursor = term->dcursor->next;
-		term->dcursor->flag |= FT_CURSOR;
-	}
-	else
-	{
-		term->dcursor->prev->flag |= FT_CURSOR;
-		term->dcursor = term->dcursor->prev;
-	}
-}
-
-void				arrow_right_mat(t_term *term)
-{
-	term->dcursor->flag &= ~FT_CURSOR;
-	if (term->dcursor->next->flag & FT_LINE)
-	{
-		while (!(term->dcursor->flag & FT_LINE))
-			term->dcursor = term->dcursor->prev;
-		term->dcursor->flag |= FT_CURSOR;
-	}
-	else
-	{
-		term->dcursor->next->flag |= FT_CURSOR;
-		term->dcursor = term->dcursor->next;
-	}
-}
-
-static inline int	init_arrow_updown(t_term *term, long key)
-{
-	if (term->row == 1)
-		return (1);
-	if (term->col == 1)
-	{
-		term->dcursor->flag &= ~FT_CURSOR;
-		term->dcursor->prev->flag |= FT_CURSOR;
-		term->dcursor = key == KEY_UP ?
-			term->dcursor->prev : term->dcursor->next;
-		return (1);
-	}
-	return (0);
-}
-
-void				arrow_up_mat(t_term *term)
-{
-	int		i;
-	int		j;
 	t_dlist	*tmp;
 
-	if (init_arrow_updown(term, KEY_UP))
-		return ;
-	term->dcursor->flag &= ~FT_CURSOR;
-	tmp = term->dcursor;
-	i = term->col;
-	j = 0;
-	while (i--)
+	tmp = term->dlist;
+	term->selected = 0;
+	while (1)
 	{
-		j++;
-		if (tmp->flag & FT_FIRST)
-			i = (term->ac % term->col >= j) ?
-				term->ac % term->col - j : i + term->ac % term->col;
-		tmp = tmp->prev;
-	}
-	term->dcursor = tmp;
-	tmp->flag |= FT_CURSOR;
-}
-
-void				arrow_down_mat(t_term *term)
-{
-	int		i;
-	int		j;
-	t_dlist	*tmp;
-
-	if (init_arrow_updown(term, KEY_DOWN))
-		return ;
-	term->dcursor->flag &= ~FT_CURSOR;
-	tmp = term->dcursor;
-	i = term->col;
-	j = 0;
-	while (i--)
-	{
-		j++;
-		if (tmp->next->flag & FT_FIRST)
-			i = (term->ac % term->col >= j) ?
-				term->ac % term->col - j : i + term->ac % term->col;
+		tmp->flag &= ~FT_SELECTED;
 		tmp = tmp->next;
+		if (tmp->flag & FT_FIRST)
+			break ;
 	}
-	term->dcursor = tmp;
-	tmp->flag |= FT_CURSOR;
+}
+
+void				fill_all(t_term *term)
+{
+	t_dlist	*tmp;
+
+	tmp = term->dlist;
+	while (1)
+	{
+		if (!(tmp->flag & FT_SELECTED))
+		{
+			term->selected++;
+			tmp->flag |= FT_SELECTED;
+		}
+		tmp = tmp->next;
+		if (tmp->flag & FT_FIRST)
+			break ;
+	}
 }
 
 long				read_keypress(t_term *term)
 {
 	long	key;
-	t_dlist	*tmp;
-	int		i;
 
 	while (1)
 	{
 		if (setup_reader(term, &key))
 			return (-1);
 		if (key == ' ')
+		{
 			term->dcursor->flag ^= FT_SELECTED;
+			term->selected += term->dcursor->flag & FT_SELECTED ? 1 : -1;
+		}
 		else if (key == KEY_ESCAPE)
 			return (0);
 		else if (key == '\n')
@@ -179,39 +126,15 @@ long				read_keypress(t_term *term)
 				return (0);
 		}
 		else if (key == KEY_LEFT)
-			arrow_left_mat(term);
+			term->left(term);
 		else if (key == KEY_UP)
-			arrow_up_mat(term);
+			term->up(term);
 		else if (key == KEY_DOWN)
-			arrow_down_mat(term);
+			term->down(term);
 		else if (key == KEY_RIGHT)
-			arrow_right_mat(term);
+			term->right(term);
 		else if (key == KEY_F1)
-		{
-			i = 0;
-			tmp = term->dlist;
-			while (1)
-			{
-				if (tmp->flag & FT_SELECTED)
-					i++;
-				else
-					tmp->flag |= FT_SELECTED;
-				tmp = tmp->next;
-				if (tmp->flag & FT_FIRST)
-					break ;
-			}
-			if (i == term->ac)
-			{
-				tmp = term->dlist;
-				while (1)
-				{
-				tmp->flag &= ~FT_SELECTED;
-				tmp = tmp->next;
-				if (tmp->flag & FT_FIRST)
-					break ;
-				}
-			}
-		}
+			term->selected == term->ac ? clear_all(term) : fill_all(term);
 	}
 	return (0);
 }

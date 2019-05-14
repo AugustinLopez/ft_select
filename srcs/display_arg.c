@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 11:51:26 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/14 18:48:17 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ int	loop_sup(t_term *term, int termcol, int *column, int offset)
 
 	while (1)
 	{
-		tmp = termcol / (term->maxlen + offset);
+		tmp = termcol / (term->maxlen + 4 * (term->flag & SELECT_P) + offset);
 		if (tmp != *column || offset > 5)
 			return (offset - 1);
 		offset += 1;
@@ -32,7 +32,7 @@ int	loop_inf(t_term *term, int termcol, int *column, int offset)
 	*column = term->ac;
 	while (1)
 	{
-		tmp = (term->maxlen + offset) * term->ac;
+		tmp = (term->maxlen + 4 * (term->flag & SELECT_P) + offset) * term->ac;
 		if (tmp >= termcol || offset > 5)
 			return (offset - 1);
 		offset += 1;
@@ -42,8 +42,10 @@ int	loop_inf(t_term *term, int termcol, int *column, int offset)
 int	col_per_row(t_term *term, int termcol, int *offset)
 {
 	int		column;
+	int		tmp;
 
-	if (!(column = termcol / (term->maxlen + *offset)))
+	tmp = term->maxlen + 4 * (term->flag & SELECT_P) + *offset;
+	if (!(column = termcol / tmp) || term->flag & SELECT_C)
 	{
 		*offset = 0;
 		return (1);
@@ -59,7 +61,9 @@ void	print_column(t_term *term, int col, int row, int offset)
 {
 	int		c;
 	int		r;
+	int		x;
 	t_dlist	*tmp;
+	struct stat data;
 
 	r = 0;
 	c = 0;
@@ -69,18 +73,81 @@ void	print_column(t_term *term, int col, int row, int offset)
 	{
 		while (c < col)
 		{
-			if (tmp && tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
-				ft_dprintf(term->fd, "%s%s%s%s%-*c", FT_REV, FT_UNDER, tmp->txt,
-					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, '*');
-			else if (tmp && tmp->flag & FT_CURSOR)
-				ft_dprintf(term->fd, "%s%s%s%*c",FT_UNDER, tmp->txt,
-					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
-			else if (tmp && tmp->flag & FT_SELECTED)
-				ft_dprintf(term->fd, "%s%s%s%*c",FT_REV, tmp->txt,
-					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
-			else if (tmp)
-				ft_dprintf(term->fd, "%-*s",
-					term->maxlen + offset, tmp->txt);
+			if (tmp && tmp->flag & FT_DELETED)
+			{
+				tmp = tmp->next;
+				continue ;
+			}
+			x = 0;
+			if (term->flag & SELECT_G && stat(tmp->txt, &data) >= 0)
+				x = 1;
+			if (tmp && term->flag & SELECT_P)
+			{
+				ft_dprintf(term->fd, "[");
+				if (tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
+					ft_dprintf(term->fd, "%s%s*%s", FT_GREEN, FT_UNDER, FT_EOC);
+				else if (tmp->flag & FT_CURSOR)
+					ft_dprintf(term->fd, "%s*%s", FT_UNDER, FT_EOC);
+				else if (tmp->flag & FT_SELECTED)
+					ft_dprintf(term->fd, "%s\\%s", FT_GREEN, FT_EOC);
+				else
+					ft_dprintf(term->fd, " ");
+				ft_dprintf(term->fd, "] ");
+				if (x)
+				{
+					if (S_ISDIR(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_CYAN);
+					else if (S_ISLNK(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_PURPLE);
+					else if (S_ISBLK(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_BLUE);
+					else if (S_ISSOCK(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_LBLUE);
+					else if (S_ISCHR(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_YELLOW);
+					else if (S_ISFIFO(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_LYELLOW);
+					else if (S_ISREG(data.st_mode) && (S_IXUSR & data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_RED);
+					else if (S_ISREG(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_GRAY);
+				}
+				ft_dprintf(term->fd, "%s%s%*c", tmp->txt, FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+			}
+			else
+			{
+				if (x)
+				{
+					if (S_ISDIR(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_CYAN);
+					else if (S_ISLNK(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_PURPLE);
+					else if (S_ISBLK(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_BLUE);
+					else if (S_ISSOCK(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_LBLUE);
+					else if (S_ISCHR(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_YELLOW);
+					else if (S_ISFIFO(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_LYELLOW);
+					else if (S_ISREG(data.st_mode) && (S_IXUSR & data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_RED);
+					else if (S_ISREG(data.st_mode))
+						ft_dprintf(term->fd, "%s", FT_GRAY);
+				}
+				if (tmp && tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
+					ft_dprintf(term->fd, "%s%s%s%s%-*c", FT_REV, FT_UNDER, tmp->txt,
+						FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, '*');
+				else if (tmp && tmp->flag & FT_CURSOR)
+					ft_dprintf(term->fd, "%s%s%s%*c",FT_UNDER, tmp->txt,
+						FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+				else if (tmp && tmp->flag & FT_SELECTED)
+					ft_dprintf(term->fd, "%s%s%s%*c",FT_REV, tmp->txt,
+						FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+				else if (tmp)
+					ft_dprintf(term->fd, "%-*s%s",
+						term->maxlen + offset, tmp->txt, FT_EOC);
+			}
 			if (!tmp || (tmp->next->flag & FT_FIRST))
 				break ;
 			tmp = tmp->next;
