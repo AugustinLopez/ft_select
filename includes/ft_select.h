@@ -56,7 +56,9 @@
 # define KEY_DOWN 4348699L
 # define KEY_RIGHT 4414235L
 # define KEY_ESCAPE 27L
-# define KEY_SPACE 32L
+# define KEY_BACKSPACE 127L
+# define KEY_DELETE 2117294875L
+
 # define CTLR_AT 0L
 # define CTRL_A 1L
 

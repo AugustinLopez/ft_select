@@ -34,7 +34,6 @@ void				set_line(t_term *term)
 long				read_keypress(t_term *term)
 {
 	long	key;
-	long	mem;
 	t_dlist	*tmp;
 	int		i;
 	int		bef;
@@ -45,7 +44,6 @@ long				read_keypress(t_term *term)
 	(void)aft;
 	bef = 0;
 	aft = 0;
-	mem = 0;
 	while (1)
 	{
 		key = 0;
@@ -54,8 +52,24 @@ long				read_keypress(t_term *term)
 		(void)ret;
 		set_line(term);
 		//parcourir ici pour setup flag : start of line
-
-		if (key == KEY_LEFT)
+		if (key == KEY_BACKSPACE || key == KEY_DELETE)
+		{
+			tmp = term->dcursor->next;
+			tmp->flag |= FT_CURSOR;
+			tmp->prev = term->dcursor->prev;
+			tmp->prev->next = tmp;
+			if (term->dcursor->flag & FT_FIRST)
+			{
+				term->dlist = tmp;
+				tmp->flag |= FT_FIRST;
+			}
+			if (term->dcursor == tmp)
+				return (0);
+			free(term->dcursor);
+			term->dcursor = tmp;
+			term->ac--;
+		}
+		else if (key == KEY_LEFT)
 		{
 			term->dcursor->flag &= ~ FT_CURSOR;
 			if (term->dcursor->flag & FT_LINE)
@@ -147,19 +161,12 @@ long				read_keypress(t_term *term)
 				term->dcursor = term->dcursor->next;
 			}
 		}
-		else if (key == KEY_SPACE)
-		{
+		else if (key == ' ')
 			term->dcursor->flag ^= FT_SELECTED;
-		}
 		else if (key == KEY_ESCAPE)
-		{
-			return (mem);
-		}
-		else
-		{
-			mem = key;
-			ft_dprintf(term->fd, "%lc\n",key);
-		}
+			break ;
+		else if (key == '\n')
+			return (key);
 	}
 	return (0);
 }
@@ -174,9 +181,13 @@ void	s_resize(int signo)
 	}
 }
 
+/*
+** ioctl does not works on WSL :'(
+*/
+
 void	s_ctrl_z(int signo)
 {
-	if (signo == SIGTSTP)
+	if (signo == SIGTSTP || signo == SIGSTOP)
 	{
 		load_saved_terminal(g_term);
 		signal(SIGTSTP, SIG_DFL);
@@ -201,11 +212,27 @@ void	s_fg(int signo)
 	}
 }
 
+void	s_exit(int signo)
+{
+	if (signo == SIGINT || signo == SIGABRT
+		|| signo == SIGQUIT)
+	{
+		load_saved_terminal(g_term);
+		ft_dlistdel(&(g_term->dlist));
+		exit(1);
+	}
+}
+
+
 void	signal_test(void)
 {
 	signal(SIGWINCH, s_resize);
 	signal(SIGTSTP, s_ctrl_z);
 	signal(SIGCONT, s_fg);
+	signal(SIGINT, s_exit);
+	signal(SIGABRT, s_exit);
+	signal(SIGSTOP, s_ctrl_z);
+	signal(SIGQUIT, s_exit);
 }
 
 
@@ -213,6 +240,7 @@ int					main(int ac, char **av)
 {
 	t_term	term;
 	long	mem;
+	int		ret;
 	
 	if (init_select(&term, ac, av) || get_terminal(&term))
 		return (1);
@@ -222,20 +250,19 @@ int					main(int ac, char **av)
 		ft_dlistdel(&(term.dlist));
 		return (1);
 	}
-	mem = 0;
 	signal_test();
 	mem = read_keypress(&term);
 	load_saved_terminal(&term);
 	term.dcursor = term.dlist;
-	mem = 0;
-	while (1)
+	ret = 0;
+	while (mem)
 	{
 		if (term.dcursor->flag & FT_SELECTED)
 		{
-			if (!mem)
+			if (!ret)
 			{	
 				ft_dprintf(STDOUT_FILENO, "%s", term.dcursor->txt);
-				mem = 1;
+				ret = 1;
 			}
 			else
 				ft_dprintf(STDOUT_FILENO, " %s", term.dcursor->txt);
@@ -244,7 +271,8 @@ int					main(int ac, char **av)
 		if (term.dcursor->flag & FT_FIRST)
 			break ;
 	}
-	ft_dprintf(STDOUT_FILENO, "\n");
+	if (ret)
+		ft_dprintf(STDOUT_FILENO, "\n");
 	ft_dlistdel(&(term.dlist));
 	return (0);
 }
