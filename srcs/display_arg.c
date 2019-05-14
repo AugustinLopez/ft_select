@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/13 19:05:08 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/14 11:51:26 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ void	print_column(t_term *term, int col, int row, int offset)
 		while (c < col)
 		{
 			if (tmp && tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
-				ft_dprintf(term->fd, "%s%s%s%s%-*c",FT_REV, FT_UNDER, tmp->txt,
+				ft_dprintf(term->fd, "%s%s%s%s%-*c", FT_REV, FT_UNDER, tmp->txt,
 					FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, '*');
 			else if (tmp && tmp->flag & FT_CURSOR)
 				ft_dprintf(term->fd, "%s%s%s%*c",FT_UNDER, tmp->txt,

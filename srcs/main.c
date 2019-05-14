@@ -6,13 +6,13 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/13 19:16:40 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/14 13:37:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
 
-void				set_line(t_term *term)
+/*void				set_line(t_term *term)
 {
 	t_dlist	*tmp;
 	int		i;
@@ -170,74 +170,7 @@ long				read_keypress(t_term *term)
 	}
 	return (0);
 }
-
-void	s_resize(int signo)
-{
-	if (signo == SIGWINCH && g_term->flag == 0)
-	{
-		g_term->flag = 1;
-		display_arg(g_term);
-		g_term->flag = 0;
-	}
-}
-
-/*
-** ioctl does not works on WSL :'(
-** raise would probably be better anyway
 */
-
-void	s_ctrl_z(int signo)
-{
-	if (signo == SIGTSTP || signo == SIGSTOP)
-	{
-		load_saved_terminal(g_term);
-		signal(SIGTSTP, SIG_DFL);
-		//raise(SIGTSTP);
-		ioctl(g_term->fd, TIOCSTI, "\x1A");
-	}
-}
-
-void	s_fg(int signo)
-{
-	if (signo == SIGCONT)
-	{
-		if (get_terminal(g_term)
-			|| load_new_terminal(g_term))
-		{
-			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
-			load_saved_terminal(g_term);
-			ft_dlistdel(&(g_term->dlist));
-			exit(1);
-		}
-		signal_test();
-		display_arg(g_term);
-	}
-}
-
-void	s_exit(int signo)
-{
-	if (signo == SIGINT || signo == SIGABRT
-		|| signo == SIGQUIT)
-	{
-		load_saved_terminal(g_term);
-		ft_dlistdel(&(g_term->dlist));
-		exit(1);
-	}
-}
-
-
-void	signal_test(void)
-{
-	signal(SIGWINCH, s_resize);
-	signal(SIGTSTP, s_ctrl_z);
-	signal(SIGCONT, s_fg);
-	signal(SIGINT, s_exit);
-	signal(SIGABRT, s_exit);
-	signal(SIGSTOP, s_ctrl_z);
-	signal(SIGQUIT, s_exit);
-}
-
-
 int					main(int ac, char **av)
 {
 	t_term	term;
@@ -252,7 +185,7 @@ int					main(int ac, char **av)
 		ft_dlistdel(&(term.dlist));
 		return (1);
 	}
-	signal_test();
+	signal_setup();
 	mem = read_keypress(&term);
 	load_saved_terminal(&term);
 	term.dcursor = term.dlist;
@@ -273,8 +206,9 @@ int					main(int ac, char **av)
 		if (term.dcursor->flag & FT_FIRST)
 			break ;
 	}
-	if (ret)
+	if (ret && mem > 0)
 		ft_dprintf(STDOUT_FILENO, "\n");
 	ft_dlistdel(&(term.dlist));
-	return (0);
+	mem = mem > 0 ? 0 : mem;
+	return (mem);
 }

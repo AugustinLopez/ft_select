@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/13 14:01:35 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/14 12:42:20 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,8 @@ int				errmsg(int error)
 		ft_dprintf(STDERR_FILENO, "ft_select: no information on terminal.\n");
 	else if (error == ERR_TCGET || error == ERR_TCSET || error == ERR_TPUTS)
 		ft_dprintf(STDERR_FILENO, "ft_select: cannot modify terminal.\n");
+	else if (error == ERR_KEYREAD)
+		ft_dprintf(STDERR_FILENO, "ft_select: cannot read from terminal.\n");
 	return (error);
 }
 
@@ -144,6 +146,7 @@ int		load_saved_terminal(t_term *term)
 
 	if ((ret = tcsetattr(term->fd, TCSANOW, &term->saved)))
 		return (errmsg(ERR_TCSET));
+	term->saved.c_lflag |= (ICANON | ECHO);
 	ret = tputs(tgetstr("te", NULL), 1, putchar_in);
 	ret += tputs(tgetstr("ve", NULL), 1, putchar_in);
 	if (ret)
