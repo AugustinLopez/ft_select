@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 12:09:56 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/15 16:15:09 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@
 # define FT_CURSOR 4
 # define FT_SELECTED 8
 # define FT_DELETED 16
+# define FT_ERROR 32
 
 # define KEY_LEFT 4479771L
 # define KEY_UP 4283163L
@@ -86,6 +87,8 @@
 # define SELECT_C 4
 # define SELECT_G 8
 # define SELECT_RESIZE 16
+# define SELECT_CTRLZ 64
+# define SELECT_FG 128
 
 /*
 ** --- Structure & Global ------------------------------------------------------

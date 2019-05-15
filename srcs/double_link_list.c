@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/09 14:02:23 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 14:47:53 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/15 15:04:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,24 +27,6 @@ t_dlist				*ft_dlistnew(char *src, int flag, t_dlist *prev)
 	}
 	return (new);
 }
-
-/*t_dlist				*ft_dlistfree(t_dlist **elem)
-{
-	t_dlist	*tmp;
-	int		x;
-
-	tmp = (*elem)->next;
-	x = ((*elem)->flag & FT_FIRST);
-	if ((*elem)->prev)
-		(*elem)->prev->next = (*elem)->next;
-	if ((*elem)->next)
-		(*elem)->next->prev = (*elem)->prev;
-	free(*elem);
-	*elem = 0;
-	if (x)
-		tmp->flag |= FT_FIRST;
-	return (tmp);
-}*/
 
 void				ft_dlistdel(t_dlist **elem)
 {
@@ -122,4 +104,3 @@ int					feed_dlist(t_term *term, char **av)
 	}
 	return (return_dlist(term));
 }
-
