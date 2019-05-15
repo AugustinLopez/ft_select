@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 18:48:17 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/15 11:10:42 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,17 +79,17 @@ void	print_column(t_term *term, int col, int row, int offset)
 				continue ;
 			}
 			x = 0;
-			if (term->flag & SELECT_G && stat(tmp->txt, &data) >= 0)
+			if (term->flag & SELECT_G && lstat(tmp->txt, &data) >= 0)
 				x = 1;
 			if (tmp && term->flag & SELECT_P)
 			{
 				ft_dprintf(term->fd, "[");
 				if (tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
-					ft_dprintf(term->fd, "%s%s*%s", FT_GREEN, FT_UNDER, FT_EOC);
+					ft_dprintf(term->fd, "%s%s+%s", FT_GREEN, FT_UNDER, FT_EOC);
 				else if (tmp->flag & FT_CURSOR)
-					ft_dprintf(term->fd, "%s*%s", FT_UNDER, FT_EOC);
+					ft_dprintf(term->fd, "%s|%s", FT_UNDER, FT_EOC);
 				else if (tmp->flag & FT_SELECTED)
-					ft_dprintf(term->fd, "%s\\%s", FT_GREEN, FT_EOC);
+					ft_dprintf(term->fd, "%s-%s", FT_GREEN, FT_EOC);
 				else
 					ft_dprintf(term->fd, " ");
 				ft_dprintf(term->fd, "] ");

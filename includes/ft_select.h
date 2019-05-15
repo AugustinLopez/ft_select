@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 18:43:27 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/15 12:09:56 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,10 @@
 # define KEY_BACKSPACE 127L
 # define KEY_DELETE 2117294875L
 # define KEY_F2 5328667L
+# define KEY_F3 5394203L
+# define KEY_F4 5459739L
+# define KEY_F5 542058306331L
+# define KEY_F6 542091860763L
 
 # define CTLR_AT 0L
 # define CTRL_A 1L

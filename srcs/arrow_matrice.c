@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:52 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 16:41:26 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/15 11:50:42 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,10 @@ static inline int	init_arrow_updown(t_term *term, long key)
 	if (term->col == 1)
 	{
 		term->dcursor->flag &= ~FT_CURSOR;
-		term->dcursor->prev->flag |= FT_CURSOR;
+		if (key == KEY_UP)
+			term->dcursor->prev->flag |= FT_CURSOR;
+		else
+			term->dcursor->next->flag |= FT_CURSOR;
 		term->dcursor = key == KEY_UP ?
 			term->dcursor->prev : term->dcursor->next;
 		return (1);

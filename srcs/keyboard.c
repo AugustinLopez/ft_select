@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 18:12:06 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/15 12:12:49 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,10 @@ void				fill_all(t_term *term)
 long				read_keypress(t_term *term)
 {
 	long	key;
+	long	mask;
+	t_dlist	*tmp;
+	char	s[9];
+	int		i;
 
 	while (1)
 	{
@@ -135,6 +139,43 @@ long				read_keypress(t_term *term)
 			term->right(term);
 		else if (key == KEY_F2)
 			term->selected == term->ac ? clear_all(term) : fill_all(term);
+		else if (key == KEY_F3)
+			term->flag ^= SELECT_G;
+		else if (key == KEY_F4)
+			term->flag ^= SELECT_P;
+		else if (key == KEY_F5)
+			term->flag ^= SELECT_C;
+		else if (key == KEY_F6)
+		{
+			term->flag ^= SELECT_M;
+			term->up = (term->flag & SELECT_M) ? arrow_up_mat : arrow_up_cir;
+			term->down = (term->flag & SELECT_M) ? arrow_down_mat : arrow_down_cir;
+			term->left = (term->flag & SELECT_M) ? arrow_left_mat : arrow_left_cir;
+			term->right = (term->flag & SELECT_M) ? arrow_right_mat : arrow_right_cir;
+		}
+		else
+		{
+			tmp = term->dcursor->next;
+			i = 0;
+			mask = 255;
+			while (key)
+			{
+				s[i] = key & mask;
+				key &= ~mask;
+				mask = mask << 8;
+				i++;
+			}
+			s[i] = 0;
+			while (!(tmp->flag & FT_CURSOR))
+			{
+				if (!ft_strlcmp(tmp->txt, s))
+					break ;
+				tmp = tmp->next;
+			}
+			term->dcursor->flag &= ~FT_CURSOR;
+			term->dcursor = tmp;
+			tmp->flag |= FT_CURSOR;
+		}
 	}
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/14 18:43:44 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/15 12:12:51 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,6 @@ static inline int	select_available_option(char *av, int *flag)
 			return (-1);
 		*flag |= (1 << (i - 1));
 	}
-	if (*flag & SELECT_C)
-		*flag &= ~SELECT_M;
 	return (0);
 }
 
@@ -191,7 +189,7 @@ int		load_saved_terminal(t_term *term)
 }
 
 /*
-** If I used /dev/tty, i would need a global to do it correctly
+** If I used /dev/tty, i would need a global or singleton to do it correctly
 ** (IE: even if i could do without global it would be hard, ugly and hacky)
 */
 
