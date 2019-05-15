@@ -31,9 +31,9 @@ t_dlist				*init_updown_cir(t_term *term, long key)
 	if (term->col == 1 || term->row == 1)
 	{
 		if (key == KEY_UP)
-			arrow_right_cir(term);
-		else
 			arrow_left_cir(term);
+		else
+			arrow_right_cir(term);
 		return (0);
 	}
 	term->dcursor->flag &= ~FT_CURSOR;
@@ -59,7 +59,7 @@ void				arrow_up_cir(t_term *term)
 	}
 	if (tmp->flag & FT_FIRST && j != term->col)
 	{
-		arrow_right_mat(term);
+		arrow_left_mat(term);
 		arrow_up_mat(term);
 	}
 	else
@@ -89,7 +89,7 @@ void				arrow_down_cir(t_term *term)
 	if (tmp->flag & FT_FIRST)
 	{
 		arrow_down_mat(term);
-		arrow_left_mat(term);
+		arrow_right_mat(term);
 	}
 	else
 	{

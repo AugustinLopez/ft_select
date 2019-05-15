@@ -133,7 +133,7 @@ long				read_keypress(t_term *term)
 			term->down(term);
 		else if (key == KEY_RIGHT)
 			term->right(term);
-		else if (key == KEY_F1)
+		else if (key == KEY_F2)
 			term->selected == term->ac ? clear_all(term) : fill_all(term);
 	}
 	return (0);

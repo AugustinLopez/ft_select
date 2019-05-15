@@ -60,7 +60,7 @@
 # define KEY_ESCAPE 27L
 # define KEY_BACKSPACE 127L
 # define KEY_DELETE 2117294875L
-# define KEY_F1 5263131L
+# define KEY_F2 5328667L
 
 # define CTLR_AT 0L
 # define CTRL_A 1L
