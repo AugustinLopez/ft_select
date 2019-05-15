@@ -97,8 +97,6 @@ void				finish_select(t_term *term, int key)
 		if (term->dcursor->flag & FT_FIRST)
 			break ;
 	}
-	if (ret && key)
-		ft_dprintf(STDOUT_FILENO, "\n");
 	ft_dlistdel(&(term->dlist));
 }
 

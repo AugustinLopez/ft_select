@@ -68,7 +68,7 @@ void	print_column(t_term *term, int col, int row, int offset)
 	r = 0;
 	c = 0;
 	tmp = term->dlist;
-	ft_dprintf(term->fd, "%d:%d\n", term->col, term->row);
+	//ft_dprintf(term->fd, "%d:%d\n", term->col, term->row);
 	while (r < row)
 	{
 		while (c < col)

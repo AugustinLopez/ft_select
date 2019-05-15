@@ -12,74 +12,83 @@
 
 #include <ft_select.h>
 
-static inline void	s_resize(int signo)
+/*
+** ioctl is needed to get out of the read loop.
+** if it fails, we need to use raise in the main program.
+** ctrl+Z will then wait for next keyboard event before properly pausing.
+*/
+
+static inline void	s_flag(int signo)
 {
-	if (signo == SIGWINCH && !(g_term->flag & SELECT_RESIZE))
-	{
+	if (signo == SIGTSTP)
+		g_term->flag |= SELECT_CTRLZ;
+	else if (signo == SIGWINCH)
 		g_term->flag |= SELECT_RESIZE;
-		display_arg(g_term);
-		g_term->flag &= ~SELECT_RESIZE;
-	}
+	ioctl(g_term->fd, TIOCSTI, "a");
 }
 
 /*
-** ioctl does not works on WSL :'(
-** use raise(SIGTSTP) instead
+** exit is here in case of ioctl failure. But a raise(SIGINT) would be better.
 */
-
-static inline void	s_ctrl_z(int signo)
-{
-	if (signo == SIGTSTP)
-	{
-		load_saved_terminal(g_term);
-		signal(SIGWINCH, SIG_DFL);
-		signal(SIGTSTP, SIG_DFL);
-		signal(SIGINT, SIG_DFL);
-		signal(SIGABRT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		ioctl(g_term->fd, TIOCSTI, "\x1A");
-	}
-}
-
-static inline void	s_fg(int signo)
-{
-	if (signo == SIGCONT)
-	{
-		if (get_terminal(g_term) || load_new_terminal(g_term))
-		{
-			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
-			load_saved_terminal(g_term);
-			ft_dlistdel(&(g_term->dlist));
-			exit(1);
-		}
-		signal_setup();
-		display_arg(g_term);
-	}
-}
 
 static inline void	s_exit(int signo)
 {
-	if (signo == SIGINT || signo == SIGABRT || signo == SIGQUIT)
+	int	fd;
+
+	if (signo == SIGINT || signo == SIGABRT || signo == SIGQUIT
+	|| signo == SIGTERM || signo == SIGHUP)
 	{
+		fd = g_term->fd;
 		ft_dlistdel(&(g_term->dlist));
 		load_saved_terminal(g_term);
+		signal(SIGINT, SIG_DFL);
+		ioctl(fd, TIOCSTI, "\x03");
 		exit(signo);
 	}
 }
 
 /*
 ** SIGWINCH -> Window resize
-** SIGTSTP, SIGSTOP -> Pause program
-** SIGCONT -> Continue paused program
+** SIGTSTP -> Pause program
+** SIGCONT -> Continue paused program: not needed here
 ** SIGINT, SIGABRT, SIGQUIT -> various quit signal
 */
 
 void				signal_setup(void)
 {
-	signal(SIGWINCH, s_resize);
-	signal(SIGTSTP, s_ctrl_z);
-	signal(SIGCONT, s_fg);
+	signal(SIGWINCH, s_flag);
+	signal(SIGTSTP, s_flag);
 	signal(SIGINT, s_exit);
+	signal(SIGTERM, s_exit);
 	signal(SIGABRT, s_exit);
 	signal(SIGQUIT, s_exit);
+	signal(SIGHUP, s_exit);
+}
+
+/*
+** raise(SIGTSTP) would be better instead of ioctl.
+*/
+
+int					key_signal(t_term *term)
+{
+	if (term->flag & SELECT_RESIZE)
+	{
+		term->flag &= ~SELECT_RESIZE;
+		return (1);
+	}
+	if (term->flag & SELECT_CTRLZ)
+	{
+		load_saved_terminal(term);
+		signal(SIGTSTP, SIG_DFL);
+		ioctl(term->fd, TIOCSTI, "\x1a");
+		term->flag &= ~SELECT_CTRLZ;
+		signal_setup();
+		if (get_terminal(term) || load_new_terminal(g_term))
+		{
+			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
+			return (-1);
+		}
+		return (1);
+	}
+	return (0);
 }

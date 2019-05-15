@@ -142,6 +142,9 @@ t_term	*g_term;
 ** ---- Prototype --------------------------------------------------------------
 */
 
+int						key_signal(t_term *term);
+void					signal_setup(void);
+
 int						get_terminal(t_term *term);
 long					read_keypress(t_term *term);
 int						init_select(t_term *term, int ac, char **av);
@@ -155,7 +158,6 @@ t_dlist					*ft_dlistfree(t_dlist **elem);
 void					ft_dlistdel(t_dlist **elem);
 int						feed_dlist(t_term *term, char **av);
 int						errmsg(int error);
-void					signal_setup(void);
 
 void					arrow_up_cir(t_term *term);
 void					arrow_down_cir(t_term *term);
