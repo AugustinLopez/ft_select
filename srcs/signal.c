@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 17:24:46 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 17:31:05 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,13 @@ static inline void	s_exit(int signo)
 		ft_dlistdel(&(g_term->dlist));
 		load_saved_terminal(g_term);
 		signal(SIGINT, SIG_DFL);
-		ioctl(fd, TIOCSTI, "\x03");
+		if (g_term->flag & SELECT_T)
+		{
+			close(fd);
+			ioctl(STDIN_FILENO, TIOCSTI, "\x03");
+		}
+		else
+			ioctl(fd, TIOCSTI, "\x03");
 		exit(signo);
 	}
 }

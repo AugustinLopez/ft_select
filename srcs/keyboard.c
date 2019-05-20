@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 13:24:48 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 17:02:47 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,9 +154,9 @@ int					key_specialtouch(t_term *term, long key)
 	{
 		term->flag ^= SELECT_CC;
 		if (term->flag & SELECT_CC)
-			tputs(tgetstr("ve", NULL), 1, putchar_in);
+			tputs(tgetstr("ve", NULL), 1, term->putchar);
 		else
-			tputs(tgetstr("vi", NULL), 1, putchar_in);
+			tputs(tgetstr("vi", NULL), 1, term->putchar);
 	}
 	else
 		return (0);

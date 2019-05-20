@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 16:16:28 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 17:36:25 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@
 # include <sys/stat.h>
 # include <signal.h>
 # include <errno.h>
+# include <fcntl.h>
 
 /*
 ** --- Define ------------------------------------------------------------------
@@ -89,8 +90,9 @@
 # define SELECT_G 8
 # define SELECT_H 16
 # define SELECT_CC 32
-# define SELECT_RESIZE 64
-# define SELECT_CTRLZ 128
+# define SELECT_T 64
+# define SELECT_RESIZE 128
+# define SELECT_CTRLZ 256
 
 
 /*
@@ -136,6 +138,7 @@ typedef struct			s_term
 	void				(*down)(struct s_term *);
 	void				(*left)(struct s_term *);
 	void				(*right)(struct s_term *);
+	int					(*putchar)(int);
 }						t_term;
 
 t_term	*g_term;
@@ -153,7 +156,9 @@ long					read_keypress(t_term *term);
 int						init_select(t_term *term, int ac, char **av);
 int						load_new_terminal(t_term *term);
 int						load_saved_terminal(t_term *term);
+int						singleton_fd(int c);
 int						putchar_in(int c);
+int						putchar_fd(int c);
 void					display_arg(t_term *term);
 void					signal_test(void);
 t_dlist					*ft_dlistnew(char *src, int flag, t_dlist *prev);

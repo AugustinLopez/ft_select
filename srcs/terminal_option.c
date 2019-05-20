@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 16:09:19 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 17:36:23 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int					errmsg(int error)
 {
 	if (error == ERR_USAGE)
 		ft_dprintf(STDOUT_FILENO,
-			"usage: ./ft_select [-CGhmcp] [--] [arg1 arg2 ...]\n");
+			"usage: ./ft_select [-CGhmcpt] [--] [arg1 arg2 ...]\n");
 	else if (error == ERR_MEM)
 		ft_dprintf(STDERR_FILENO, "ft_select: not enough memory.\n");
 	else if (error == ERR_EMPTYARG)
@@ -60,6 +60,7 @@ int					get_terminal(t_term *term)
 {
 	char	buff[512];
 	char	*t;
+	int		fd;
 
 	if (!(t = getenv("TERM")))
 	{
@@ -68,7 +69,18 @@ int					get_terminal(t_term *term)
 	}
 	else
 		term->name = t;
-	term->fd = STDIN_FILENO;
+	if (term->flag & SELECT_T)
+	{
+		if ((fd = open("/dev/tty", O_RDWR)) == -1)
+			return (errmsg(ERR_BADFDTTY));
+		term->fd = singleton_fd(fd);
+		term->putchar = putchar_fd;
+	}
+	else
+	{
+		term->fd = STDIN_FILENO;
+		term->putchar = putchar_in;
+	}
 	if (!isatty(term->fd))
 		return (term->fd == STDIN_FILENO ?
 			errmsg(ERR_BADSTDIN) : errmsg(ERR_BADFDTTY));
@@ -101,9 +113,9 @@ int					load_new_terminal(t_term *term)
 	ret += tcsetattr(term->fd, TCSANOW, &term->current);
 	if (ret)
 		return (errmsg(ERR_TCSET));
-	ret += tputs(tgetstr("ti", NULL), 1, putchar_in);
-//	ret += tputs(tgetstr("vi", NULL), 1, putchar_in);
-//	ret = tputs(tgetstr("ho", NULL), 1, putchar_in);
+	ret += tputs(tgetstr("ti", NULL), 1, term->putchar);
+//	ret += tputs(tgetstr("vi", NULL), 1, term->putchar);
+//	ret = tputs(tgetstr("ho", NULL), 1, term->putchar);
 	if (ret)
 		return (errmsg(ERR_TPUTS));
 	return (0);
@@ -113,12 +125,12 @@ int					load_saved_terminal(t_term *term)
 {
 	int	ret;
 
-	ret = tputs(tgetstr("cl", NULL), 1, putchar_in);
+	ret = tputs(tgetstr("cl", NULL), 1, term->putchar);
 	if ((ret = tcsetattr(term->fd, TCSANOW, &term->saved)))
 		return (errmsg(ERR_TCSET));
 	term->saved.c_lflag |= (ICANON | ECHO);
-	ret = tputs(tgetstr("te", NULL), 1, putchar_in);
-	ret += tputs(tgetstr("ve", NULL), 1, putchar_in);
+	ret = tputs(tgetstr("te", NULL), 1, term->putchar);
+	ret += tputs(tgetstr("ve", NULL), 1, term->putchar);
 	if (ret)
 		return (errmsg(ERR_TPUTS));
 	return (ret);
@@ -128,6 +140,20 @@ int					load_saved_terminal(t_term *term)
 ** If I used /dev/tty, i would need a global or singleton to do it correctly
 ** (IE: even if i could do without global it would be hard, ugly and hacky)
 */
+
+int					singleton_fd(int c)
+{
+	static int a = STDIN_FILENO;
+
+	if (c != -1)
+		a = c;
+	return (a);
+}
+
+int					putchar_fd(int c)
+{
+	return (write(singleton_fd(-1), &c, 1));
+}
 
 int					putchar_in(int c)
 {
