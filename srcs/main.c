@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 15:19:30 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 12:48:36 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ static inline int	select_available_option(char *av, int *flag)
 
 	while (*(++av))
 	{
-		if (!(i = ft_strchri("mpcG", av[0])))
+		if (!(i = ft_strchri("mpcGhC", av[0])))
 			return (-1);
 		*flag |= (1 << (i - 1));
 	}
@@ -33,6 +33,8 @@ int					select_option(int ac, char **av, int *flag)
 	i = 0;
 	while (++i < ac && av[i][0] == '-' && av[i][1])
 	{
+		if (*flag & SELECT_H)
+			return (1);
 		if (av[i][1] == '-' && !av[i][2])
 		{
 			if (!(av[i + 1]))
@@ -43,6 +45,32 @@ int					select_option(int ac, char **av, int *flag)
 			return (0);
 	}
 	return (i);
+}
+
+
+int					print_help(void)
+{
+	ft_putstr(FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
+	ft_putstr("[" FT_BOLD "-mpcGh" FT_EOC "] [" FT_UNDER "arg1" FT_EOC " ");
+	ft_putendl(FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
+	ft_putendl("\n\tThe following options are available:");
+	ft_putendl("\n\t(" FT_ITALIC "F2" FT_EOC ")\tSelect/Deselect all");
+	ft_putstr(FT_BOLD "\t-G" FT_EOC " (" FT_ITALIC "F3" FT_EOC);
+	ft_putendl(")\tColor On/Off");
+	ft_putstr(FT_BOLD "\t-p" FT_EOC " (" FT_ITALIC "F4" FT_EOC);
+	ft_putendl(")\tPretty display On/Off");
+	ft_putstr(FT_BOLD "\t-c" FT_EOC " (" FT_ITALIC "F5" FT_EOC);
+	ft_putendl(")\tCircular column On/Off");
+	ft_putstr(FT_BOLD "\t-m" FT_EOC " (" FT_ITALIC "F6" FT_EOC);
+	ft_putendl(")\tNon-circular movement On/Off");
+	ft_putstr(FT_BOLD "\t-C" FT_EOC " (" FT_ITALIC "F7" FT_EOC);
+	ft_putendl(")\tTerminal Cursor On/Off");
+	ft_putendl(FT_BOLD "\t-h" FT_EOC "\tHelp");
+	ft_putendl("\n\tIf your arguments contains '-', use the following format:");
+	ft_putstr("\t" FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
+	ft_putstr("[" FT_BOLD "-mpcGh" FT_EOC "] -- [" FT_UNDER "arg1" FT_EOC " ");
+	ft_putendl(FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
+	return (ERR_USAGE);
 }
 
 /*
@@ -56,6 +84,8 @@ int					init_select(t_term *term, int ac, char **av)
 
 	if (ac < 2 || !(ret = select_option(ac, av, &(term->flag))))
 		return (errmsg(ERR_USAGE));
+	if (term->flag & SELECT_H)
+		return (print_help());
 	term->name = 0;
 	term->selected = 0;
 	term->ac = ac - ret;
@@ -86,7 +116,7 @@ void				finish_select(t_term *term, int key)
 		if (term->dcursor->flag & FT_SELECTED)
 		{
 			if (!ret)
-			{	
+			{
 				ft_dprintf(STDOUT_FILENO, "%s", term->dcursor->txt);
 				ret = 1;
 			}
@@ -97,8 +127,6 @@ void				finish_select(t_term *term, int key)
 		if (term->dcursor->flag & FT_FIRST)
 			break ;
 	}
-	if (ret && key)
-		ft_dprintf(STDOUT_FILENO, "\n");
 	ft_dlistdel(&(term->dlist));
 }
 
@@ -107,7 +135,7 @@ int					main(int ac, char **av)
 	t_term	term;
 	long	key;
 	int		ret;
-	
+
 	if ((ret = init_select(&term, ac, av)))
 		return (ret == ERR_USAGE ? 0 : ret);
 	if ((ret = load_new_terminal(&term)))
@@ -116,6 +144,8 @@ int					main(int ac, char **av)
 		ft_dlistdel(&(term.dlist));
 		return (ret);
 	}
+	if (!(term.flag & SELECT_CC))
+	   tputs(tgetstr("vi", NULL), 1, putchar_in);
 	signal_setup();
 	key = read_keypress(&term);
 	load_saved_terminal(&term);

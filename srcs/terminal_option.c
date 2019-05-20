@@ -6,12 +6,11 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 18:23:21 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 12:20:01 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
-
 
 /*
 ** UPDATE: Not using /dev/tty: I would need to use global outside of signal.
@@ -84,7 +83,7 @@ int					get_terminal(t_term *term)
 **  VMIN and VTIME: read() option.
 ** See: http://www.unixwiz.net/techtips/termios-vmin-vtime.html
 **
-** `ti': terminal mode to move the cursor non-sequentially. Undo with `te'
+** `ti': terminal mode adapted for full-screen display. Undo with `te'
 ** `vi': make the cursor invisible. Undo with `ve'
 ** `cl': clear the entire screen.
 ** `ho': move the cursor in the upper left corner of the screen.
@@ -107,8 +106,8 @@ int					load_new_terminal(t_term *term)
 	if (ret)
 		return (errmsg(ERR_TCSET));
 	ret += tputs(tgetstr("ti", NULL), 1, putchar_in);
-	ret += tputs(tgetstr("vi", NULL), 1, putchar_in);
-	ret += tputs(tgetstr("ho", NULL), 1, putchar_in);
+//	ret += tputs(tgetstr("vi", NULL), 1, putchar_in);
+//	ret = tputs(tgetstr("ho", NULL), 1, putchar_in);
 	if (ret)
 		return (errmsg(ERR_TPUTS));
 	return (0);
@@ -118,6 +117,7 @@ int					load_saved_terminal(t_term *term)
 {
 	int	ret;
 
+	ret = tputs(tgetstr("cl", NULL), 1, putchar_in);
 	if ((ret = tcsetattr(term->fd, TCSANOW, &term->saved)))
 		return (errmsg(ERR_TCSET));
 	term->saved.c_lflag |= (ICANON | ECHO);

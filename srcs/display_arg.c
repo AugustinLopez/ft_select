@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 11:10:42 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 13:02:40 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,6 @@ void	print_column(t_term *term, int col, int row, int offset)
 	r = 0;
 	c = 0;
 	tmp = term->dlist;
-	ft_dprintf(term->fd, "%d:%d\n", term->col, term->row);
 	while (r < row)
 	{
 		while (c < col)
@@ -184,9 +183,38 @@ int		get_winsize(t_term *term, int *col, int *row)
 ** have to use ioctl instead of tgetnum: it does not update)
 */
 
+void	place_term_cursor(t_term *term, int colterm, int rowterm, int offset)
+{
+	int	x;
+	int	y;
+	t_dlist	*tmp;
+
+	if (term->row > rowterm || term->maxlen > colterm)
+	{
+		tputs(tgoto(tgetstr("cm", NULL), colterm, rowterm), 1, putchar_in);
+		return ;
+	}
+	x = ((term->flag & SELECT_P) != 0);
+	y = 0;
+	tmp = term->dlist;
+	while (!(tmp->flag & FT_CURSOR))
+	{
+		x += (term->maxlen + offset) + 4 * ((term->flag & SELECT_P) != 0);
+		if (x >= (term->col * (term->maxlen + offset + 4 * ((term->flag & SELECT_P) != 0))))
+		{
+			x = ((term->flag & SELECT_P) != 0);
+			y++;
+		}
+		tmp = tmp->next;
+	}
+	tputs(tgoto(tgetstr("cm", NULL), x, y), 1, putchar_in);
+}
+
 void	display_arg(t_term *term)
 {
 	int				col;
+	int				colterm;
+	int				rowterm;
 	int				row;
 	int				offset;
 
@@ -198,13 +226,17 @@ void	display_arg(t_term *term)
 		ft_dprintf(STDERR_FILENO, "ft_select: could not clear the screen.\n");
 		return ;
 	}
-	if (!(term->av) || get_winsize(term, &col, &row) /*|| term->maxlen > col*/)
+	if (!(term->av) || get_winsize(term, &colterm, &rowterm) /*|| term->maxlen > col*/)
 		return ;
-	col = col_per_row(term, col, &offset);
+	col = col_per_row(term, colterm, &offset);
 	row = term->ac / col;
 	if (term->ac % col)
 		row++;
 	term->col = col;
 	term->row = row;
 	print_column(term, col, row, offset);
+	if (term->flag & SELECT_CC)
+	{
+		place_term_cursor(term, colterm, rowterm, offset);
+	}
 }

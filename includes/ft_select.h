@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 16:15:09 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 12:21:32 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@
 # define KEY_F4 5459739L
 # define KEY_F5 542058306331L
 # define KEY_F6 542091860763L
+# define KEY_F7 542108637979L
 
 # define CTLR_AT 0L
 # define CTRL_A 1L
@@ -86,9 +87,12 @@
 # define SELECT_P 2
 # define SELECT_C 4
 # define SELECT_G 8
-# define SELECT_RESIZE 16
-# define SELECT_CTRLZ 64
-# define SELECT_FG 128
+# define SELECT_H 16
+# define SELECT_CC 32
+# define SELECT_RESIZE 64
+# define SELECT_CTRLZ 128
+# define SELECT_FG 256
+
 
 /*
 ** --- Structure & Global ------------------------------------------------------
@@ -142,6 +146,9 @@ t_term	*g_term;
 ** ---- Prototype --------------------------------------------------------------
 */
 
+int						key_signal(t_term *term);
+void					signal_setup(void);
+
 int						get_terminal(t_term *term);
 long					read_keypress(t_term *term);
 int						init_select(t_term *term, int ac, char **av);
@@ -155,7 +162,6 @@ t_dlist					*ft_dlistfree(t_dlist **elem);
 void					ft_dlistdel(t_dlist **elem);
 int						feed_dlist(t_term *term, char **av);
 int						errmsg(int error);
-void					signal_setup(void);
 
 void					arrow_up_cir(t_term *term);
 void					arrow_down_cir(t_term *term);

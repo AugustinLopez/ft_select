@@ -6,11 +6,13 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 12:12:49 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 13:02:33 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
+
+//Need original_first for option_c
 
 int					setup_reader(t_term *term, long *key)
 {
@@ -25,7 +27,6 @@ int					setup_reader(t_term *term, long *key)
 		term->dlist = term->dcursor->next;
 	}
 	display_arg(term);
-	*key = 0;
 	ret = read(term->fd, key, sizeof(key));
 	i = 0;
 	tmp = term->dlist;
@@ -39,9 +40,7 @@ int					setup_reader(t_term *term, long *key)
 		if (tmp->flag & FT_FIRST)
 			break ;
 	}
-	if (ret == -1 && errmsg(ERR_KEYREAD))
-		return (-1);
-	return (0);
+	return (ret == -1 && errmsg(ERR_KEYREAD));
 }
 
 int					delete_arg(t_term *term)
@@ -103,25 +102,103 @@ void				fill_all(t_term *term)
 	}
 }
 
-long				read_keypress(t_term *term)
+int					key_arrow(t_term *term, long key)
 {
-	long	key;
+	if (key == KEY_LEFT)
+		term->left(term);
+	else if (key == KEY_UP)
+		term->up(term);
+	else if (key == KEY_DOWN)
+		term->down(term);
+	else if (key == KEY_RIGHT)
+		term->right(term);
+	else if (key == KEY_F6)
+	{
+		term->flag ^= SELECT_M;
+		term->up = (term->flag & SELECT_M) ? arrow_up_mat : arrow_up_cir;
+		term->down = (term->flag & SELECT_M) ? arrow_down_mat : arrow_down_cir;
+		term->left = (term->flag & SELECT_M) ? arrow_left_mat : arrow_left_cir;
+		term->right = (term->flag & SELECT_M) ?
+			arrow_right_mat : arrow_right_cir;
+	}
+	else
+		return (0);
+	return (1);
+}
+
+int					key_specialtouch(t_term *term, long key)
+{
+	if (key == ' ')
+	{
+		term->dcursor->flag ^= FT_SELECTED;
+		term->selected += term->dcursor->flag & FT_SELECTED ? 1 : -1;
+	}
+	else if (key == KEY_ESCAPE)
+		return (2);
+	else if (key == '\n')
+		return (key);
+	else if (key == KEY_BACKSPACE || key == KEY_DELETE)
+	{
+		if (delete_arg(term))
+			return (2);
+	}
+	else if (key == KEY_F2)
+		term->selected == term->ac ? clear_all(term) : fill_all(term);
+	else if (key == KEY_F3)
+		term->flag ^= SELECT_G;
+	else if (key == KEY_F4)
+		term->flag ^= SELECT_P;
+	else if (key == KEY_F5)
+		term->flag ^= SELECT_C;
+	else
+		return (0);
+	return (1);
+}
+
+void				key_basictouch(t_term *term, long key)
+{
 	long	mask;
 	t_dlist	*tmp;
 	char	s[9];
 	int		i;
 
+	tmp = term->dcursor->next;
+	i = 0;
+	mask = 255;
+	while (key)
+	{
+		s[i++] = key & mask;
+		key &= ~mask;
+		mask = mask << 8;
+	}
+	s[i] = 0;
+	while (!(tmp->flag & FT_CURSOR))
+	{
+		if (!ft_strlcmp(tmp->txt, s))
+			break ;
+		tmp = tmp->next;
+	}
+	term->dcursor->flag &= ~FT_CURSOR;
+	term->dcursor = tmp;
+	tmp->flag |= FT_CURSOR;
+}
+
+long				read_keypress(t_term *term)
+{
+	long	key;
+	int		ret;
+
 	while (1)
 	{
+		key = 0;
 		if (setup_reader(term, &key))
 			return (-1);
-		if (key == ' ')
+		if ((ret = key_signal(term)))
 		{
-			term->dcursor->flag ^= FT_SELECTED;
-			term->selected += term->dcursor->flag & FT_SELECTED ? 1 : -1;
-		}
-		else if (key == KEY_ESCAPE)
+			if (ret == 1)
+				continue ;
 			return (0);
+		}
 		else if (key == '\n')
 			return (key);
 		else if (key == KEY_BACKSPACE || key == KEY_DELETE)
@@ -145,6 +222,14 @@ long				read_keypress(t_term *term)
 			term->flag ^= SELECT_P;
 		else if (key == KEY_F5)
 			term->flag ^= SELECT_C;
+		else if (key == KEY_F7)
+		{
+			term->flag ^= SELECT_CC;
+			if (term->flag & SELECT_CC)
+				tputs(tgetstr("ve", NULL), 1, putchar_in);
+			else
+				tputs(tgetstr("vi", NULL), 1, putchar_in);
+		}
 		else if (key == KEY_F6)
 		{
 			term->flag ^= SELECT_M;
@@ -153,29 +238,15 @@ long				read_keypress(t_term *term)
 			term->left = (term->flag & SELECT_M) ? arrow_left_mat : arrow_left_cir;
 			term->right = (term->flag & SELECT_M) ? arrow_right_mat : arrow_right_cir;
 		}
-		else
+		if (key_arrow(term, key))
+			continue ;
+		if ((ret = key_specialtouch(term, key)))
 		{
-			tmp = term->dcursor->next;
-			i = 0;
-			mask = 255;
-			while (key)
-			{
-				s[i] = key & mask;
-				key &= ~mask;
-				mask = mask << 8;
-				i++;
-			}
-			s[i] = 0;
-			while (!(tmp->flag & FT_CURSOR))
-			{
-				if (!ft_strlcmp(tmp->txt, s))
-					break ;
-				tmp = tmp->next;
-			}
-			term->dcursor->flag &= ~FT_CURSOR;
-			term->dcursor = tmp;
-			tmp->flag |= FT_CURSOR;
+			if (ret == 1)
+				continue ;
+			return (ret);
 		}
+		key_basictouch(term, key);
 	}
 	return (0);
 }
