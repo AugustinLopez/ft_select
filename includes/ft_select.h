@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 12:21:32 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 16:16:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,6 @@
 # define SELECT_CC 32
 # define SELECT_RESIZE 64
 # define SELECT_CTRLZ 128
-# define SELECT_FG 256
 
 
 /*

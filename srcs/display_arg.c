@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 13:19:10 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 13:30:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,7 +194,7 @@ void	place_term_cursor(t_term *term, int colterm, int rowterm, int offset)
 		tputs(tgoto(tgetstr("cm", NULL), colterm, rowterm), 1, putchar_in);
 		return ;
 	}
-	x = ((term->flag & SELECT_P) != 0);
+	x = 0;
 	y = 0;
 	tmp = term->dlist;
 	while (!(tmp->flag & FT_CURSOR))
@@ -202,7 +202,7 @@ void	place_term_cursor(t_term *term, int colterm, int rowterm, int offset)
 		x += (term->maxlen + offset) + 4 * ((term->flag & SELECT_P) != 0);
 		if (x >= (term->col * (term->maxlen + offset + 4 * ((term->flag & SELECT_P) != 0))))
 		{
-			x = ((term->flag & SELECT_P) != 0);
+			x = 0;
 			y++;
 		}
 		tmp = tmp->next;

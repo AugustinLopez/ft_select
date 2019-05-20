@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 12:48:36 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 15:48:16 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ int					select_option(int ac, char **av, int *flag)
 int					print_help(void)
 {
 	ft_putstr(FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
-	ft_putstr("[" FT_BOLD "-mpcGh" FT_EOC "] [" FT_UNDER "arg1" FT_EOC " ");
+	ft_putstr("[" FT_BOLD "-CGhmcp" FT_EOC "] [" FT_UNDER "arg1" FT_EOC " ");
 	ft_putendl(FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
 	ft_putendl("\n\tThe following options are available:");
 	ft_putendl("\n\t(" FT_ITALIC "F2" FT_EOC ")\tSelect/Deselect all");
@@ -145,7 +145,7 @@ int					main(int ac, char **av)
 		return (ret);
 	}
 	if (!(term.flag & SELECT_CC))
-	   tputs(tgetstr("vi", NULL), 1, putchar_in);
+		tputs(tgetstr("vi", NULL), 1, putchar_in);
 	signal_setup();
 	key = read_keypress(&term);
 	load_saved_terminal(&term);

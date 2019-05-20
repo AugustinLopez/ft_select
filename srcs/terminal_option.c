@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 12:20:01 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 16:09:19 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int					errmsg(int error)
 {
 	if (error == ERR_USAGE)
 		ft_dprintf(STDOUT_FILENO,
-			"usage: ./ft_select [-mpc] [--] [arg1 arg2 ...]\n");
+			"usage: ./ft_select [-CGhmcp] [--] [arg1 arg2 ...]\n");
 	else if (error == ERR_MEM)
 		ft_dprintf(STDERR_FILENO, "ft_select: not enough memory.\n");
 	else if (error == ERR_EMPTYARG)
@@ -81,14 +81,10 @@ int					get_terminal(t_term *term)
 
 /*
 **  VMIN and VTIME: read() option.
-** See: http://www.unixwiz.net/techtips/termios-vmin-vtime.html
-**
 ** `ti': terminal mode adapted for full-screen display. Undo with `te'
 ** `vi': make the cursor invisible. Undo with `ve'
 ** `cl': clear the entire screen.
 ** `ho': move the cursor in the upper left corner of the screen.
-** See: https://www.gnu.org/software/termutils/
-**       manual/termcap-1.3/html_mono/termcap.html
 */
 
 int					load_new_terminal(t_term *term)
