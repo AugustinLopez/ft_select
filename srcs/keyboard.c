@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 13:05:06 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 13:24:48 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,6 +150,14 @@ int					key_specialtouch(t_term *term, long key)
 		term->flag ^= SELECT_P;
 	else if (key == KEY_F5)
 		term->flag ^= SELECT_C;
+	else if (key == KEY_F7)
+	{
+		term->flag ^= SELECT_CC;
+		if (term->flag & SELECT_CC)
+			tputs(tgetstr("ve", NULL), 1, putchar_in);
+		else
+			tputs(tgetstr("vi", NULL), 1, putchar_in);
+	}
 	else
 		return (0);
 	return (1);
@@ -198,45 +206,6 @@ long				read_keypress(t_term *term)
 			if (ret == 1)
 				continue ;
 			return (0);
-		}
-		else if (key == '\n')
-			return (key);
-		else if (key == KEY_BACKSPACE || key == KEY_DELETE)
-		{
-			if (delete_arg(term))
-				return (0);
-		}
-		else if (key == KEY_LEFT)
-			term->left(term);
-		else if (key == KEY_UP)
-			term->up(term);
-		else if (key == KEY_DOWN)
-			term->down(term);
-		else if (key == KEY_RIGHT)
-			term->right(term);
-		else if (key == KEY_F2)
-			term->selected == term->ac ? clear_all(term) : fill_all(term);
-		else if (key == KEY_F3)
-			term->flag ^= SELECT_G;
-		else if (key == KEY_F4)
-			term->flag ^= SELECT_P;
-		else if (key == KEY_F5)
-			term->flag ^= SELECT_C;
-		else if (key == KEY_F7)
-		{
-			term->flag ^= SELECT_CC;
-			if (term->flag & SELECT_CC)
-				tputs(tgetstr("ve", NULL), 1, putchar_in);
-			else
-				tputs(tgetstr("vi", NULL), 1, putchar_in);
-		}
-		else if (key == KEY_F6)
-		{
-			term->flag ^= SELECT_M;
-			term->up = (term->flag & SELECT_M) ? arrow_up_mat : arrow_up_cir;
-			term->down = (term->flag & SELECT_M) ? arrow_down_mat : arrow_down_cir;
-			term->left = (term->flag & SELECT_M) ? arrow_left_mat : arrow_left_cir;
-			term->right = (term->flag & SELECT_M) ? arrow_right_mat : arrow_right_cir;
 		}
 		if (key_arrow(term, key))
 			continue ;

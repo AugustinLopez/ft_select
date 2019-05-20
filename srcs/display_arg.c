@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 13:04:54 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/20 13:19:10 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,6 +228,7 @@ void	display_arg(t_term *term)
 	}
 	if (!(term->av) || get_winsize(term, &colterm, &rowterm) /*|| term->maxlen > col*/)
 		return ;
+	row = rowterm;
 	col = col_per_row(term, colterm, &offset);
 	row = term->ac / col;
 	if (term->ac % col)
