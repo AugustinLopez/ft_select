@@ -34,12 +34,12 @@ ls `./ft_select *`
 ```
 
 ### Options
--h: Help
--G: Color On
--p: Prettier Display On
--c: Column + cursor at bottom On (For huge list of argument)
--m: Non-Circular Movement On
--C: Terminal Cursor Show
+- h: Help
+- G: Color On
+- p: Prettier Display On
+- c: Column + cursor at bottom On (For huge list of argument)
+- m: Non-Circular Movement On
+- C: Terminal Cursor Show
 
 ### keys
 - Arrow keys: move around the list. The default movement is **circular**: one arrow can move through the whole list.
