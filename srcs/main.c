@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 17:07:19 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/21 17:31:30 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ int					print_help(void)
 	ft_putendl(FT_BOLD "\t-t" FT_EOC "\tUse /dev/tty");
 	ft_putendl("\n\tIf your arguments contains '-', use the following format:");
 	ft_putstr("\t" FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
-	ft_putstr("[" FT_BOLD "-mpcGh" FT_EOC "] -- [" FT_UNDER "arg1" FT_EOC " ");
+	ft_putstr("[" FT_BOLD "-CGhmcpt" FT_EOC "] -- [" FT_UNDER "arg1" FT_EOC " ");
 	ft_putendl(FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
 	return (ERR_USAGE);
 }
@@ -139,6 +139,7 @@ int					main(int ac, char **av)
 
 	if ((ret = init_select(&term, ac, av)))
 		return (ret == ERR_USAGE ? 0 : ret);
+	signal_setup();
 	if ((ret = load_new_terminal(&term)))
 	{
 		load_saved_terminal(&term);
@@ -147,9 +148,15 @@ int					main(int ac, char **av)
 	}
 	if (!(term.flag & SELECT_CC))
 		tputs(tgetstr("vi", NULL), 1, term.putchar);
-	signal_setup();
 	key = read_keypress(&term);
 	load_saved_terminal(&term);
 	finish_select(&term, key);
+	if (term.flag & SELECT_T)
+		close(term.fd);
+	if (term.flag & SELECT_KILL)
+	{
+		signal(SIGINT, SIG_DFL);
+		ioctl(STDIN_FILENO, TIOCSTI, "\x03");
+	}
 	return (0);
 }

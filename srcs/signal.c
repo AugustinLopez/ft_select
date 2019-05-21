@@ -6,16 +6,19 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 17:31:05 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/21 18:22:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
 
 /*
+** look for PID with top, kill with kill pid, foreground with kill -CONT pid
+*/
+
+/*
 ** ioctl is needed to get out of the read loop.
-** if it fails, we need to use raise in the main program.
-** ctrl+Z will then wait for next keyboard event before properly pausing.
+** if ioctls fails, changes will happens at next keyboard event.
 */
 
 static inline void	s_flag(int signo)
@@ -27,28 +30,24 @@ static inline void	s_flag(int signo)
 	ioctl(g_term->fd, TIOCSTI, "a");
 }
 
-/*
-** exit is here in case of ioctl failure. But a raise(SIGINT) would be better.
-*/
 
 static inline void	s_exit(int signo)
 {
-	int	fd;
-
 	if (signo == SIGINT || signo == SIGABRT || signo == SIGQUIT
 	|| signo == SIGTERM || signo == SIGHUP)
 	{
-		fd = g_term->fd;
-		ft_dlistdel(&(g_term->dlist));
 		load_saved_terminal(g_term);
+		signal(SIGWINCH, SIG_DFL);
+		signal(SIGTSTP, SIG_DFL);
 		signal(SIGINT, SIG_DFL);
+		signal(SIGABRT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
+		ft_dlistdel(&(g_term->dlist));
 		if (g_term->flag & SELECT_T)
 		{
-			close(fd);
+			close(g_term->fd);
 			ioctl(STDIN_FILENO, TIOCSTI, "\x03");
 		}
-		else
-			ioctl(fd, TIOCSTI, "\x03");
 		exit(signo);
 	}
 }
@@ -86,7 +85,11 @@ int					key_signal(t_term *term)
 	{
 		load_saved_terminal(term);
 		signal(SIGTSTP, SIG_DFL);
-		ioctl(term->fd, TIOCSTI, "\x1a");
+		signal(SIGWINCH, SIG_DFL);
+		signal(SIGINT, SIG_DFL);
+		signal(SIGABRT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
+		ioctl(term->fd, TIOCSTI, "\x1A");
 		term->flag &= ~SELECT_CTRLZ;
 		signal_setup();
 		if (get_terminal(term) || load_new_terminal(g_term))
@@ -94,6 +97,8 @@ int					key_signal(t_term *term)
 			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
 			return (-1);
 		}
+		if (!(g_term->flag & SELECT_CC))
+		   tputs(tgetstr("vi", NULL), 1, g_term->putchar);
 		return (1);
 	}
 	return (0);

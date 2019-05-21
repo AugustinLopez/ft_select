@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/20 17:36:23 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/21 17:05:55 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,14 +125,13 @@ int					load_saved_terminal(t_term *term)
 {
 	int	ret;
 
-	ret = tputs(tgetstr("cl", NULL), 1, term->putchar);
 	if ((ret = tcsetattr(term->fd, TCSANOW, &term->saved)))
 		return (errmsg(ERR_TCSET));
 	term->saved.c_lflag |= (ICANON | ECHO);
-	ret = tputs(tgetstr("te", NULL), 1, term->putchar);
-	ret += tputs(tgetstr("ve", NULL), 1, term->putchar);
-	if (ret)
-		return (errmsg(ERR_TPUTS));
+	tputs(tgetstr("te", NULL), 1, term->putchar);
+	tputs(tgetstr("ve", NULL), 1, term->putchar);
+	//if (ret)
+	//	return (errmsg(ERR_TPUTS));
 	return (ret);
 }
 
