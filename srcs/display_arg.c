@@ -12,14 +12,23 @@
 
 #include <ft_select.h>
 
+/*
+** COL_PER_ROW: Calculate how many arguments can be displayed per row.
+** 2 mains case: all arguments can be displayed on 1 row (loop_inf)
+** or not (loop_sup)
+** We also calculate an offset value to create some spacing when possible
+*/
+
 int	loop_sup(t_term *term, int termcol, int *column, int offset)
 {
 	int tmp;
+	int	base_spacing;
 
+	base_spacing = term->maxlen + PRETTY_SPACING * (term->flag & SELECT_P);
 	while (1)
 	{
-		tmp = termcol / (term->maxlen + 4 * (term->flag & SELECT_P) + offset);
-		if (tmp != *column || offset > 5)
+		tmp = termcol / (base_spacing + offset);
+		if (tmp != *column || offset > MAX_SPACING)
 			return (offset - 1);
 		offset += 1;
 	}
@@ -28,12 +37,14 @@ int	loop_sup(t_term *term, int termcol, int *column, int offset)
 int	loop_inf(t_term *term, int termcol, int *column, int offset)
 {
 	int tmp;
+	int	base_spacing;
 
+	base_spacing = term->maxlen + PRETTY_SPACING * (term->flag & SELECT_P);
 	*column = term->ac;
 	while (1)
 	{
-		tmp = (term->maxlen + 4 * (term->flag & SELECT_P) + offset) * term->ac;
-		if (tmp >= termcol || offset > 5)
+		tmp = (base_spacing + offset) * term->ac;
+		if (tmp >= termcol || offset > MAX_SPACING)
 			return (offset - 1);
 		offset += 1;
 	}
@@ -44,7 +55,7 @@ int	col_per_row(t_term *term, int termcol, int *offset)
 	int		column;
 	int		tmp;
 
-	tmp = term->maxlen + 4 * (term->flag & SELECT_P) + *offset;
+	tmp = term->maxlen + PRETTY_SPACING * (term->flag & SELECT_P) + *offset;
 	if (!(column = termcol / tmp) || term->flag & SELECT_C)
 	{
 		*offset = 0;
@@ -57,106 +68,92 @@ int	col_per_row(t_term *term, int termcol, int *offset)
 	return (column);
 }
 
+void	print_color(t_term *term, t_dlist *tmp)
+{
+	struct stat data;
+
+	if (lstat(tmp->txt, &data) >= 0)
+	{
+		if (S_ISDIR(data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_CYAN);
+		else if (S_ISLNK(data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_PURPLE);
+		else if (S_ISBLK(data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_BLUE);
+		else if (S_ISSOCK(data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_LBLUE);
+		else if (S_ISCHR(data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_YELLOW);
+		else if (S_ISFIFO(data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_LYELLOW);
+		else if (S_ISREG(data.st_mode) && (S_IXUSR & data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_RED);
+		else if (S_ISREG(data.st_mode))
+			ft_dprintf(term->fd, "%s", FT_GRAY);
+	}
+	else
+		ft_dprintf(term->fd, "%s", FT_BOLD);
+}
+
+void	print_pretty(t_term *term, t_dlist *tmp, int offset)
+{
+	ft_dprintf(term->fd, "[");
+	if (tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
+		ft_dprintf(term->fd, "%s%s+%s", FT_GREEN, FT_UNDER, FT_EOC);
+	else if (tmp->flag & FT_CURSOR)
+		ft_dprintf(term->fd, "%s|%s", FT_UNDER, FT_EOC);
+	else if (tmp->flag & FT_SELECTED)
+		ft_dprintf(term->fd, "%s-%s", FT_GREEN, FT_EOC);
+	else
+		ft_dprintf(term->fd, " ");
+	ft_dprintf(term->fd, "] ");
+	if (term->flag & SELECT_GG)
+		print_color(term, tmp);
+	ft_dprintf(term->fd, "%s%s%*c", tmp->txt, FT_EOC,
+			term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+}
+
+void	print_basic(t_term *term, t_dlist *tmp, int offset)
+{
+	if (term->flag & SELECT_GG)
+		print_color(term, tmp);
+	if (tmp && tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
+		ft_dprintf(term->fd, "%s%s%s%s%-*c", FT_REV, FT_UNDER, tmp->txt,
+				FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, '*');
+	else if (tmp && tmp->flag & FT_CURSOR)
+		ft_dprintf(term->fd, "%s%s%s%*c", FT_UNDER, tmp->txt,
+				FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+	else if (tmp && tmp->flag & FT_SELECTED)
+		ft_dprintf(term->fd, "%s%s%s%*c", FT_REV, tmp->txt,
+				FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
+	else if (tmp)
+		ft_dprintf(term->fd, "%-*s%s", term->maxlen + offset, tmp->txt, FT_EOC);
+}
+
 void	print_column(t_term *term, int col, int row, int offset)
 {
 	int		c;
 	int		r;
-	int		x;
 	t_dlist	*tmp;
-	struct stat data;
 
 	r = 0;
-	c = 0;
 	tmp = term->dlist;
-	while (r < row)
+	while (r++ < row)
 	{
-		while (c < col)
+		c = 0;
+		while (c++ < col)
 		{
-			if (tmp && tmp->flag & FT_DELETED)
-			{
-				tmp = tmp->next;
-				continue ;
-			}
-			x = 0;
-			if (term->flag & SELECT_G && lstat(tmp->txt, &data) >= 0)
-				x = 1;
 			if (tmp && term->flag & SELECT_P)
-			{
-				ft_dprintf(term->fd, "[");
-				if (tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
-					ft_dprintf(term->fd, "%s%s+%s", FT_GREEN, FT_UNDER, FT_EOC);
-				else if (tmp->flag & FT_CURSOR)
-					ft_dprintf(term->fd, "%s|%s", FT_UNDER, FT_EOC);
-				else if (tmp->flag & FT_SELECTED)
-					ft_dprintf(term->fd, "%s-%s", FT_GREEN, FT_EOC);
-				else
-					ft_dprintf(term->fd, " ");
-				ft_dprintf(term->fd, "] ");
-				if (x)
-				{
-					if (S_ISDIR(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_CYAN);
-					else if (S_ISLNK(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_PURPLE);
-					else if (S_ISBLK(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_BLUE);
-					else if (S_ISSOCK(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_LBLUE);
-					else if (S_ISCHR(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_YELLOW);
-					else if (S_ISFIFO(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_LYELLOW);
-					else if (S_ISREG(data.st_mode) && (S_IXUSR & data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_RED);
-					else if (S_ISREG(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_GRAY);
-				}
-				ft_dprintf(term->fd, "%s%s%*c", tmp->txt, FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
-			}
+				print_pretty(term, tmp, offset);
 			else
-			{
-				if (x)
-				{
-					if (S_ISDIR(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_CYAN);
-					else if (S_ISLNK(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_PURPLE);
-					else if (S_ISBLK(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_BLUE);
-					else if (S_ISSOCK(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_LBLUE);
-					else if (S_ISCHR(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_YELLOW);
-					else if (S_ISFIFO(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_LYELLOW);
-					else if (S_ISREG(data.st_mode) && (S_IXUSR & data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_RED);
-					else if (S_ISREG(data.st_mode))
-						ft_dprintf(term->fd, "%s", FT_GRAY);
-				}
-				if (tmp && tmp->flag & FT_CURSOR && tmp->flag & FT_SELECTED)
-					ft_dprintf(term->fd, "%s%s%s%s%-*c", FT_REV, FT_UNDER, tmp->txt,
-						FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, '*');
-				else if (tmp && tmp->flag & FT_CURSOR)
-					ft_dprintf(term->fd, "%s%s%s%*c",FT_UNDER, tmp->txt,
-						FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
-				else if (tmp && tmp->flag & FT_SELECTED)
-					ft_dprintf(term->fd, "%s%s%s%*c",FT_REV, tmp->txt,
-						FT_EOC, term->maxlen - ft_strlen(tmp->txt) + offset, ' ');
-				else if (tmp)
-					ft_dprintf(term->fd, "%-*s%s",
-						term->maxlen + offset, tmp->txt, FT_EOC);
-			}
+				print_basic(term, tmp, offset);
 			if (!tmp || (tmp->next->flag & FT_FIRST))
 				break ;
 			tmp = tmp->next;
-			c++;
 		}
 		ft_dprintf(term->fd, "\n");
 		if (!tmp || tmp->flag & FT_FIRST)
 			break ;
-		c = 0;
-		r++;
 	}
 }
 
@@ -185,11 +182,12 @@ int		get_winsize(t_term *term, int *col, int *row)
 
 void	place_term_cursor(t_term *term, int colterm, int rowterm, int offset)
 {
-	int	x;
-	int	y;
+	int		x;
+	int		y;
 	t_dlist	*tmp;
 
-	if (term->row > rowterm || term->maxlen > colterm)
+	if (term->row > rowterm || term->maxlen
+			+ (PRETTY_SPACING * ((term->flag & SELECT_P) != 0)) >= colterm)
 	{
 		tputs(tgoto(tgetstr("cm", NULL), colterm, rowterm), 1, putchar_in);
 		return ;
@@ -200,7 +198,8 @@ void	place_term_cursor(t_term *term, int colterm, int rowterm, int offset)
 	while (!(tmp->flag & FT_CURSOR))
 	{
 		x += (term->maxlen + offset) + 4 * ((term->flag & SELECT_P) != 0);
-		if (x >= (term->col * (term->maxlen + offset + 4 * ((term->flag & SELECT_P) != 0))))
+		if (x >= (term->col
+				* (term->maxlen + offset + 4 * ((term->flag & SELECT_P) != 0))))
 		{
 			x = 0;
 			y++;
@@ -210,7 +209,7 @@ void	place_term_cursor(t_term *term, int colterm, int rowterm, int offset)
 	tputs(tgoto(tgetstr("cm", NULL), x, y), 1, putchar_in);
 }
 
-void	display_arg(t_term *term)
+int		display_arg(t_term *term)
 {
 	int				col;
 	int				colterm;
@@ -221,13 +220,10 @@ void	display_arg(t_term *term)
 	col = 0;
 	row = 0;
 	offset = 1;
-	if (tputs(tgetstr("cl", NULL), 1, putchar_in))
-	{
+	if ((col = tputs(tgetstr("cl", NULL), 1, putchar_in)))
 		ft_dprintf(STDERR_FILENO, "ft_select: could not clear the screen.\n");
-		return ;
-	}
-	if (!(term->av) || get_winsize(term, &colterm, &rowterm) /*|| term->maxlen > col*/)
-		return ;
+	if (col || !(term->av) || get_winsize(term, &colterm, &rowterm))
+		return (-1);
 	row = rowterm;
 	col = col_per_row(term, colterm, &offset);
 	row = term->ac / col;
@@ -237,7 +233,6 @@ void	display_arg(t_term *term)
 	term->row = row;
 	print_column(term, col, row, offset);
 	if (term->flag & SELECT_CC)
-	{
 		place_term_cursor(term, colterm, rowterm, offset);
-	}
+	return (0);
 }

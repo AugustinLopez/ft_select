@@ -69,8 +69,8 @@
 # define KEY_F6 542091860763L
 # define KEY_F7 542108637979L
 
-# define CTLR_AT 0L
-# define CTRL_A 1L
+# define MAX_SPACING 5
+# define PRETTY_SPACING 4
 
 # define ERR_USAGE 1
 # define ERR_MEM 2
@@ -84,10 +84,11 @@
 # define ERR_TPUTS 10
 # define ERR_KEYREAD 11
 
+# define SELECT_OPTION "mpcGhCt"
 # define SELECT_M 1
 # define SELECT_P 2
 # define SELECT_C 4
-# define SELECT_G 8
+# define SELECT_GG 8
 # define SELECT_H 16
 # define SELECT_CC 32
 # define SELECT_T 64
@@ -126,6 +127,7 @@ typedef struct			s_term
 	int					fd;
 	t_list				*list_av;
 	t_dlist				*dlist;
+	t_dlist				*mem;
 	t_dlist				*dcursor;
 	struct termios		saved;
 	struct termios		current;
@@ -160,7 +162,7 @@ int						load_saved_terminal(t_term *term);
 int						singleton_fd(int c);
 int						putchar_in(int c);
 int						putchar_fd(int c);
-void					display_arg(t_term *term);
+int						display_arg(t_term *term);
 void					signal_test(void);
 t_dlist					*ft_dlistnew(char *src, int flag, t_dlist *prev);
 t_dlist					*ft_dlistfree(t_dlist **elem);

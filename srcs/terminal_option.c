@@ -41,7 +41,7 @@ int					errmsg(int error)
 		ft_dprintf(STDERR_FILENO, "ft_select: fd not linked to terminal.\n");
 	else if (error == ERR_BADSTDIN)
 		ft_dprintf(STDERR_FILENO,
-			"ft_select: STDIN not linked to terminal. Try the -t option.\n"); //bonus
+			"ft_select: STDIN not linked to terminal. Try the -t option.\n");
 	else if (error == ERR_NOTERMINFO)
 		ft_dprintf(STDERR_FILENO, "ft_select: no information on terminal.\n");
 	else if (error == ERR_TCGET || error == ERR_TCSET || error == ERR_TPUTS)
@@ -62,13 +62,9 @@ int					get_terminal(t_term *term)
 	char	*t;
 	int		fd;
 
-	if (!(t = getenv("TERM")))
-	{
-		if (!term->name)
-			return (errmsg(ERR_TERMENV));
-	}
-	else
-		term->name = t;
+	if (!(t = getenv("TERM")) && !term->name)
+		return (errmsg(ERR_TERMENV));
+	term->name = t;
 	if (term->flag & SELECT_T)
 	{
 		if ((fd = open("/dev/tty", O_RDWR)) == -1)
@@ -86,9 +82,7 @@ int					get_terminal(t_term *term)
 			errmsg(ERR_BADSTDIN) : errmsg(ERR_BADFDTTY));
 	else if (tgetent(buff, term->name) < 1)
 		return (errmsg(ERR_NOTERMINFO));
-	else
-		return (0);
-	return (-1);
+	return (0);
 }
 
 /*
@@ -114,8 +108,8 @@ int					load_new_terminal(t_term *term)
 	if (ret)
 		return (errmsg(ERR_TCSET));
 	ret += tputs(tgetstr("ti", NULL), 1, term->putchar);
-//	ret += tputs(tgetstr("vi", NULL), 1, term->putchar);
-//	ret = tputs(tgetstr("ho", NULL), 1, term->putchar);
+	if (!(term->flag & SELECT_CC))
+		ret += tputs(tgetstr("vi", NULL), 1, term->putchar);
 	if (ret)
 		return (errmsg(ERR_TPUTS));
 	return (0);
@@ -128,10 +122,10 @@ int					load_saved_terminal(t_term *term)
 	if ((ret = tcsetattr(term->fd, TCSANOW, &term->saved)))
 		return (errmsg(ERR_TCSET));
 	term->saved.c_lflag |= (ICANON | ECHO);
-	tputs(tgetstr("te", NULL), 1, term->putchar);
-	tputs(tgetstr("ve", NULL), 1, term->putchar);
-	//if (ret)
-	//	return (errmsg(ERR_TPUTS));
+	ret += tputs(tgetstr("te", NULL), 1, term->putchar);
+	ret += tputs(tgetstr("ve", NULL), 1, term->putchar);
+	if (ret)
+		return (errmsg(ERR_TPUTS));
 	return (ret);
 }
 

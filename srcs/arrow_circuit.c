@@ -12,21 +12,25 @@
 
 #include <ft_select.h>
 
-void				arrow_left_cir(t_term *term)
+void					arrow_left_cir(t_term *term)
 {
 	term->dcursor->flag &= ~FT_CURSOR;
 	term->dcursor->prev->flag |= FT_CURSOR;
 	term->dcursor = term->dcursor->prev;
 }
 
-void				arrow_right_cir(t_term *term)
+void					arrow_right_cir(t_term *term)
 {
 	term->dcursor->flag &= ~FT_CURSOR;
 	term->dcursor->next->flag |= FT_CURSOR;
 	term->dcursor = term->dcursor->next;
 }
 
-t_dlist				*init_updown_cir(t_term *term, long key)
+/*
+** INIT_UPDOWN_CIR: simplify case up and down with COL == 1 || ROW == 1
+*/
+
+static inline t_dlist	*init_updown_cir(t_term *term, long key)
 {
 	if (term->col == 1 || term->row == 1)
 	{
@@ -40,7 +44,13 @@ t_dlist				*init_updown_cir(t_term *term, long key)
 	return (term->dcursor);
 }
 
-void				arrow_up_cir(t_term *term)
+/*
+** ARROW_UP/DOWN_CIR: handle the up/down key for circular movement.
+** I used non-circular up and down movement because they were already made.
+** Making the calculation properly would probably increase performance. Indeed.
+*/
+
+void					arrow_up_cir(t_term *term)
 {
 	int		i;
 	int		j;
@@ -69,7 +79,7 @@ void				arrow_up_cir(t_term *term)
 	}
 }
 
-void				arrow_down_cir(t_term *term)
+void					arrow_down_cir(t_term *term)
 {
 	int		i;
 	int		j;

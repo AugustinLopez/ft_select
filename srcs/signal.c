@@ -30,7 +30,6 @@ static inline void	s_flag(int signo)
 	ioctl(g_term->fd, TIOCSTI, "a");
 }
 
-
 static inline void	s_exit(int signo)
 {
 	if (signo == SIGINT || signo == SIGABRT || signo == SIGQUIT
@@ -73,11 +72,6 @@ void				signal_setup(void)
 
 int					key_signal(t_term *term)
 {
-	if (term->flag & SELECT_RESIZE)
-	{
-		term->flag &= ~SELECT_RESIZE;
-		return (1);
-	}
 	if (term->flag & SELECT_CTRLZ)
 	{
 		load_saved_terminal(term);
@@ -95,8 +89,11 @@ int					key_signal(t_term *term)
 			return (-1);
 		}
 		if (!(g_term->flag & SELECT_CC))
-		   tputs(tgetstr("vi", NULL), 1, g_term->putchar);
-		return (1);
+			tputs(tgetstr("vi", NULL), 1, g_term->putchar);
 	}
-	return (0);
+	else if (term->flag & SELECT_RESIZE)
+		term->flag &= ~SELECT_RESIZE;
+	else
+		return (0);
+	return (1);
 }

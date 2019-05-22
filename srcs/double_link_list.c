@@ -6,11 +6,17 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/09 14:02:23 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 15:04:28 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/22 11:51:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
+
+/*
+** FT_DLISTNEW: create a link for a double-linked list.
+** The link receives a flag and, if it exists, the last elem of the list
+** it should be appended to.
+*/
 
 t_dlist				*ft_dlistnew(char *src, int flag, t_dlist *prev)
 {
@@ -27,6 +33,14 @@ t_dlist				*ft_dlistnew(char *src, int flag, t_dlist *prev)
 	}
 	return (new);
 }
+
+/*
+** FT_DLISTDEL: delete the circular list and its content.
+** Should also works if the list is not circular.
+** DEBUG:
+** 1st if: set up a stop condition for circular list.
+** Beware: the content of the list is assumed to have been malloc'd.
+*/
 
 void				ft_dlistdel(t_dlist **elem)
 {
@@ -55,10 +69,8 @@ void				ft_dlistdel(t_dlist **elem)
 }
 
 /*
-** RETURN_DLIST: join both end of the circular list + final return value.
-** Should be put at the end of FEED_DLIST when norm is no longer an issue.
-** DEBUG:
-** 1st if: case where av is only composed of empty arg.
+** RETURN_DLIST: join both end of the circular list.
+** Function required because of the 25 lines max rule.
 */
 
 static inline int	return_dlist(t_term *term)
@@ -72,10 +84,12 @@ static inline int	return_dlist(t_term *term)
 }
 
 /*
-** FEED_DLIST: feed the circular list of argument. Call by init_select
-** The double-link structure will be easier to handle in the long run.
+** FEED_DLIST: create a circular list of argument from **av.
+** The size of the longest argument is tracked here.
 ** DEBUG CASE:
 ** 1st if: Empty element are completely ignored
+** 2nd if: set the first av as the cursor target and first element top left.
+** else normal element.
 ** 3rd if: return on malloc error.
 */
 
@@ -102,5 +116,6 @@ int					feed_dlist(t_term *term, char **av)
 		len = ft_strlen(av[i]);
 		term->maxlen = len > term->maxlen ? len : term->maxlen;
 	}
+	term->mem = term->dlist;
 	return (return_dlist(term));
 }

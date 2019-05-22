@@ -12,7 +12,21 @@
 
 #include <ft_select.h>
 
-//Need original_first for option_c
+void				flag_column(t_term *term)
+{
+	if (term->flag & SELECT_C)
+	{
+		term->dlist->flag &= ~FT_FIRST;
+		term->dcursor->next->flag |= FT_FIRST;
+		term->dlist = term->dcursor->next;
+	}
+	else if (term->dlist != term->mem)
+	{
+		term->dlist->flag &= ~FT_FIRST;
+		term->mem->flag |= FT_FIRST;
+		term->dlist = term->mem;
+	}
+}
 
 int					setup_reader(t_term *term, long *key)
 {
@@ -20,12 +34,7 @@ int					setup_reader(t_term *term, long *key)
 	int		i;
 	int		ret;
 
-	if (term->flag & SELECT_C)
-	{
-		term->dlist->flag &= ~FT_FIRST;
-		term->dcursor->next->flag |= FT_FIRST;
-		term->dlist = term->dcursor->next;
-	}
+	flag_column(term);
 	display_arg(term);
 	ret = read(term->fd, key, sizeof(key));
 	i = 0;
@@ -48,22 +57,23 @@ int					delete_arg(t_term *term)
 	t_dlist *tmp;
 
 	tmp = term->dcursor->next;
+	if (term->dcursor == tmp)
+		return (1);
 	tmp->flag |= FT_CURSOR;
 	tmp->prev = term->dcursor->prev;
 	tmp->prev->next = tmp;
 	if (term->dcursor->flag & FT_FIRST)
 	{
 		term->dlist = tmp;
+		term->mem = tmp;
 		tmp->flag |= FT_FIRST;
 	}
-	if (term->dcursor == tmp)
-		return (1);
-	term->dcursor->flag |= FT_DELETED;
 	if (term->dcursor->flag & FT_SELECTED)
 	{
 		term->selected -= 1;
 		term->dcursor->flag &= ~FT_SELECTED;
 	}
+	free(term->dcursor);
 	term->dcursor = tmp;
 	term->ac--;
 	return (0);
@@ -126,26 +136,12 @@ int					key_arrow(t_term *term, long key)
 	return (1);
 }
 
-int					key_specialtouch(t_term *term, long key)
+int					key_f(t_term *term, long key)
 {
-	if (key == ' ')
-	{
-		term->dcursor->flag ^= FT_SELECTED;
-		term->selected += term->dcursor->flag & FT_SELECTED ? 1 : -1;
-	}
-	else if (key == KEY_ESCAPE)
-		return (2);
-	else if (key == '\n')
-		return (key);
-	else if (key == KEY_BACKSPACE || key == KEY_DELETE)
-	{
-		if (delete_arg(term))
-			return (2);
-	}
-	else if (key == KEY_F2)
+	if (key == KEY_F2)
 		term->selected == term->ac ? clear_all(term) : fill_all(term);
 	else if (key == KEY_F3)
-		term->flag ^= SELECT_G;
+		term->flag ^= SELECT_GG;
 	else if (key == KEY_F4)
 		term->flag ^= SELECT_P;
 	else if (key == KEY_F5)
@@ -159,6 +155,27 @@ int					key_specialtouch(t_term *term, long key)
 			tputs(tgetstr("vi", NULL), 1, term->putchar);
 	}
 	else
+		return (0);
+	return (1);
+}
+
+int					key_specialtouch(t_term *term, long key)
+{
+	if (key == ' ')
+	{
+		term->dcursor->flag ^= FT_SELECTED;
+		term->selected += term->dcursor->flag & FT_SELECTED ? 1 : -1;
+	}
+	else if (key == '\n')
+		return (key);
+	else if (key == KEY_ESCAPE)
+		return (2);
+	else if (key == KEY_BACKSPACE || key == KEY_DELETE)
+	{
+		if (delete_arg(term))
+			return (2);
+	}
+	else if (!key_f(term, key))
 		return (0);
 	return (1);
 }
