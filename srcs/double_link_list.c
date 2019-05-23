@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/09 14:02:23 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/22 11:51:28 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 11:19:23 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ static inline int	return_dlist(t_term *term)
 		return (ERR_EMPTYARG);
 	term->dlist->next = term->dcursor;
 	term->dcursor->prev = term->dlist;
-	term->dlist = term->dcursor;
+	term->dlist = term->mem;
 	return (0);
 }
 
@@ -108,6 +108,7 @@ int					feed_dlist(t_term *term, char **av)
 		{
 			term->dcursor = ft_dlistnew(av[i], FT_CURSOR | FT_FIRST, 0);
 			term->dlist = term->dcursor;
+			term->mem = term->dlist;
 		}
 		else
 			term->dlist = ft_dlistnew(av[i], 0, term->dlist);
@@ -116,6 +117,5 @@ int					feed_dlist(t_term *term, char **av)
 		len = ft_strlen(av[i]);
 		term->maxlen = len > term->maxlen ? len : term->maxlen;
 	}
-	term->mem = term->dlist;
 	return (return_dlist(term));
 }

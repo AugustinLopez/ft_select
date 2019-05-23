@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/21 16:32:03 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 14:30:16 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,6 @@
 # define SELECT_CTRLZ 256
 # define SELECT_KILL 512
 
-
 /*
 ** --- Structure & Global ------------------------------------------------------
 */
@@ -146,29 +145,42 @@ typedef struct			s_term
 
 t_term	*g_term;
 
-
 /*
 ** ---- Prototype --------------------------------------------------------------
 */
 
+void					print_column(t_term *term, int col, int row,
+							int offset);
+int						print_help(void);
+int						print_main(t_term *term);
+
+int						term_winsize(t_term *term, int *col, int *row);
+void					term_cursor(t_term *term, int colt, int row,
+							int offset);
+
+int						errmsg(int error);
+int						singleton_fd(int c);
+int						putchar_fd(int c);
+int						putchar_in(int c);
+
 int						key_signal(t_term *term);
-void					signal_setup(void);
+void					key_basic(t_term *term, long key);
+int						key_special(t_term *term, long key);
+int						key_fn(t_term *term, long key);
+int						key_arrow(t_term *term, long key);
+int						keypress(t_term *term);
+void					signal_setup(int option);
 
 int						get_terminal(t_term *term);
 long					read_keypress(t_term *term);
 int						init_select(t_term *term, int ac, char **av);
 int						load_new_terminal(t_term *term);
 int						load_saved_terminal(t_term *term);
-int						singleton_fd(int c);
-int						putchar_in(int c);
-int						putchar_fd(int c);
-int						display_arg(t_term *term);
 void					signal_test(void);
 t_dlist					*ft_dlistnew(char *src, int flag, t_dlist *prev);
 t_dlist					*ft_dlistfree(t_dlist **elem);
 void					ft_dlistdel(t_dlist **elem);
 int						feed_dlist(t_term *term, char **av);
-int						errmsg(int error);
 
 void					arrow_up_cir(t_term *term);
 void					arrow_down_cir(t_term *term);

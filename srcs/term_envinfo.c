@@ -6,54 +6,28 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/21 17:05:55 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 12:39:39 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ft_select.h>
 
 /*
-** UPDATE: Not using /dev/tty: I would need to use global outside of signal.
-** I will NOT use singleton in C: it is just an obfuscated global.
-** Why using STDIN instead of STDOUT or STDERR?
+** Why use STDIN instead of STDOUT or STDERR or /dev/tty?
 ** 1. Writing to STDOUT will cause issue with command redirection.
 **    Moreover, with ``, isatty(STDOUT_FILENO) return 0.
-** 2. Writing to STDERR may works, but it's a dirty solution.
-** 3. Writing to STDIN seems the most logical choice.
-** Normally we would use TTY_NAME_MAX, but it is not always defined and
-** using a conditional define is a pain with the norm.
-** we use t and s so we can reload if suspended + TERM unset
+** 2. Writing to STDERR may works, but i'd rather keep it for error handling.
+** 3. /dev/tty should be the proper option and I use it with the -t option.
+**    But we can't use global (forbidden by exercice).
+** 4. Writing to STDIN seems the most logical choice.
 */
-
-int					errmsg(int error)
-{
-	if (error == ERR_USAGE)
-		ft_dprintf(STDOUT_FILENO,
-			"usage: ./ft_select [-CGhmcpt] [--] [arg1 arg2 ...]\n");
-	else if (error == ERR_MEM)
-		ft_dprintf(STDERR_FILENO, "ft_select: not enough memory.\n");
-	else if (error == ERR_EMPTYARG)
-		ft_dprintf(STDERR_FILENO, "ft_select: arguments are empty.\n");
-	else if (error == ERR_TERMENV)
-		ft_dprintf(STDERR_FILENO,
-			"ft_select: could not get terminal environment variable.\n");
-	else if (error == ERR_BADFDTTY)
-		ft_dprintf(STDERR_FILENO, "ft_select: fd not linked to terminal.\n");
-	else if (error == ERR_BADSTDIN)
-		ft_dprintf(STDERR_FILENO,
-			"ft_select: STDIN not linked to terminal. Try the -t option.\n");
-	else if (error == ERR_NOTERMINFO)
-		ft_dprintf(STDERR_FILENO, "ft_select: no information on terminal.\n");
-	else if (error == ERR_TCGET || error == ERR_TCSET || error == ERR_TPUTS)
-		ft_dprintf(STDERR_FILENO, "ft_select: cannot modify terminal.\n");
-	else if (error == ERR_KEYREAD)
-		ft_dprintf(STDERR_FILENO, "ft_select: cannot read from terminal.\n");
-	return (error);
-}
 
 /*
 ** Note that if term->name already exist (after Ctrl->Z for instance) it will
 ** be used if TERM has ben unset before relaunching the program.
+** Normally we would use TTY_NAME_MAX, but it is not always defined and
+** using a conditional define is a pain with the norm.
+** we use t and s so we can reload if suspended + TERM unset
 */
 
 int					get_terminal(t_term *term)
@@ -127,28 +101,4 @@ int					load_saved_terminal(t_term *term)
 	if (ret)
 		return (errmsg(ERR_TPUTS));
 	return (ret);
-}
-
-/*
-** If I used /dev/tty, i would need a global or singleton to do it correctly
-** (IE: even if i could do without global it would be hard, ugly and hacky)
-*/
-
-int					singleton_fd(int c)
-{
-	static int a = STDIN_FILENO;
-
-	if (c != -1)
-		a = c;
-	return (a);
-}
-
-int					putchar_fd(int c)
-{
-	return (write(singleton_fd(-1), &c, 1));
-}
-
-int					putchar_in(int c)
-{
-	return (write(STDIN_FILENO, &c, 1));
 }

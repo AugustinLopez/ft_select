@@ -6,7 +6,7 @@
 #    By: aulopez <marvin@42.fr>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/06 13:11:21 by aulopez           #+#    #+#              #
-#    Updated: 2019/05/14 16:42:35 by aulopez          ###   ########.fr        #
+#    Updated: 2019/05/23 14:32:17 by aulopez          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,11 +16,16 @@ LIBFT=$(PATH_LIB)libft.a
 # --- 1.Source/Header ----------------------------------------------------------
 
 SRC=main \
-	terminal_option \
-	display_arg \
+	print_main \
+	print_function \
+	term_envinfo \
+	term_liveinfo \
 	double_link_list \
+	putchar_and_errmsg \
 	signal \
-	keyboard \
+	key_main \
+	key_fn \
+	key_function \
 	arrow_matrice \
 	arrow_circuit
 INCLUDES=	$(PATH_HDR)libft.h \

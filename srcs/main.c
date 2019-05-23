@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/21 17:31:30 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 14:22:32 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,36 +52,6 @@ int					select_option(int ac, char **av, int *flag)
 }
 
 /*
-** PRINT_HELP: print help and stop the program when -h is provided.
-*/
-
-int					print_help(void)
-{
-	ft_putstr(FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
-	ft_putstr("[" FT_BOLD "-CGhmcpt" FT_EOC "] [" FT_UNDER "arg1" FT_EOC " ");
-	ft_putendl(FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
-	ft_putendl("\n\tThe following options are available:");
-	ft_putendl("\n\t(" FT_ITALIC "F2" FT_EOC ")\tSelect/Deselect all");
-	ft_putstr(FT_BOLD "\t-G" FT_EOC " (" FT_ITALIC "F3" FT_EOC);
-	ft_putendl(")\tColor On/Off");
-	ft_putstr(FT_BOLD "\t-p" FT_EOC " (" FT_ITALIC "F4" FT_EOC);
-	ft_putendl(")\tPretty display On/Off");
-	ft_putstr(FT_BOLD "\t-c" FT_EOC " (" FT_ITALIC "F5" FT_EOC);
-	ft_putendl(")\tCircular column On/Off");
-	ft_putstr(FT_BOLD "\t-m" FT_EOC " (" FT_ITALIC "F6" FT_EOC);
-	ft_putendl(")\tNon-circular movement On/Off");
-	ft_putstr(FT_BOLD "\t-C" FT_EOC " (" FT_ITALIC "F7" FT_EOC);
-	ft_putendl(")\tTerminal Cursor On/Off");
-	ft_putendl(FT_BOLD "\t-h" FT_EOC "\tHelp");
-	ft_putendl(FT_BOLD "\t-t" FT_EOC "\tUse /dev/tty");
-	ft_putendl("\n\tIf your arguments contains '-', use the following format:");
-	ft_putstr("\t" FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
-	ft_putstr("[" FT_BOLD "-CGhmcpt" FT_EOC "] -- [" FT_UNDER "arg1" FT_EOC);
-	ft_putendl(" " FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
-	return (ERR_USAGE);
-}
-
-/*
 ** INIT_SELECT:
 ** print usage if wrong arguments or not enough argument
 ** print help if -h
@@ -116,7 +86,7 @@ int					init_select(t_term *term, int ac, char **av)
 	if ((ret = get_terminal(term)))
 		return (ret);
 	g_term = term;
-	signal_setup();
+	signal_setup(1);
 	return (0);
 }
 
@@ -164,7 +134,6 @@ void				finish_select(t_term *term, long key)
 int					main(int ac, char **av)
 {
 	t_term	term;
-	long	key;
 	int		ret;
 
 	if ((ret = init_select(&term, ac, av)))
@@ -174,7 +143,7 @@ int					main(int ac, char **av)
 		finish_select(&term, 0);
 		return (ret);
 	}
-	key = read_keypress(&term);
-	finish_select(&term, key);
+	ret = keypress(&term);
+	finish_select(&term, ret);
 	return (0);
 }
