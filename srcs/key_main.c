@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 14:22:01 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 18:37:36 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,8 @@ static inline int	setup_reader(t_term *term, long *key)
 
 	flag_column(term);
 	print_main(term);
-	ret = read(term->fd, key, sizeof(key));
+	if ((ret = read(term->fd, key, sizeof(key))) < 0)
+		return (-1);
 	i = 0;
 	tmp = term->dlist;
 	while (1)
@@ -49,7 +50,7 @@ static inline int	setup_reader(t_term *term, long *key)
 		if (tmp->flag & FT_FIRST)
 			break ;
 	}
-	return (ret == -1 && errmsg(ERR_KEYREAD));
+	return (0);
 }
 
 /*
@@ -61,16 +62,15 @@ int					key_signal(t_term *term)
 	if (term->flag & SELECT_CTRLZ)
 	{
 		load_saved_terminal(term);
-		signal_setup(0);
+		signal_setup(DESACTIVATE);
 		ioctl(term->fd, TIOCSTI, "\x1A");
+		signal_setup(ACTIVATE);
 		term->flag &= ~SELECT_CTRLZ;
-		signal_setup(1);
+		if (term->flag & SELECT_T)
+			close(term->fd);
 		if (get_terminal(term) || load_new_terminal(term))
-		{
-			ft_dprintf(STDERR_FILENO, "ft_select: cannot reload terminal.\n");
 			return (-1);
-		}
-		if (!(term->flag & SELECT_CC))
+		if (term->flag & SELECT_CC)
 			tputs(tgetstr("vi", NULL), 1, term->putchar);
 	}
 	else if (term->flag & SELECT_RESIZE)
@@ -89,12 +89,12 @@ int					keypress(t_term *term)
 	{
 		key = 0;
 		if (setup_reader(term, &key))
-			return (-1);
+			return (ERR_KEYREAD);
 		if ((ret = key_signal(term)))
 		{
 			if (ret == 1)
 				continue ;
-			return (0);
+			return (ERR_RELOAD);
 		}
 		if (!key || key_arrow(term, key) || key_fn(term, key))
 			continue ;

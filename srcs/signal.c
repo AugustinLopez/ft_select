@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 14:22:15 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 17:26:03 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ static inline void	s_exit(int signo)
 	|| signo == SIGTERM || signo == SIGHUP)
 	{
 		load_saved_terminal(g_term);
-		signal_setup(0);
+		signal_setup(DESACTIVATE);
 		ft_dlistdel(&(g_term->dlist));
 		if (g_term->flag & SELECT_T)
 			close(g_term->fd);

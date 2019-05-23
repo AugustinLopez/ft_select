@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 14:18:15 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 17:14:07 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,11 +65,11 @@ int					key_special(t_term *term, long key)
 	else if (key == '\n')
 		return (key);
 	else if (key == KEY_ESCAPE)
-		return (2);
+		return (KEY_ESCAPE);
 	else if (key == KEY_BACKSPACE || key == KEY_DELETE)
 	{
 		if (delete_arg(term))
-			return (2);
+			return (KEY_ESCAPE);
 	}
 	return (0);
 }

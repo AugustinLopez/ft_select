@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 14:22:32 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 17:45:18 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ static inline int	select_available_option(char *av, int *flag)
 	return (0);
 }
 
-int					select_option(int ac, char **av, int *flag)
+static inline int	select_option(int ac, char **av, int *flag)
 {
 	int	i;
 
@@ -52,24 +52,62 @@ int					select_option(int ac, char **av, int *flag)
 }
 
 /*
+** FINISH_SELECT:
+** Restore terminal session. We attempt to proceed even in case of error
+** 1st if+ loop: Print selected argument if last keystroke was '\n'
+** delete circular list.
+** check if -t flag has been used and close the fd associated with /dev/tty.
+** if an error has been detected, we return an error and print a message.
+** We print error immediately because we won't override previous error.
+*/
+
+static inline int	finish_select(t_term *term, int key)
+{
+	int	ret;
+	int	err;
+
+	ret = 0;
+	term->dcursor = term->dlist;
+	err = load_saved_terminal(term);
+	if (key == '\n')
+	{
+		while (1)
+		{
+			if (term->dcursor->flag & FT_SELECTED)
+				(!ret && (ret = 1)) ?
+					ft_dprintf(STDOUT_FILENO, "%s", term->dcursor->txt) :
+					ft_dprintf(STDOUT_FILENO, " %s", term->dcursor->txt);
+			term->dcursor = term->dcursor->next;
+			if (term->dcursor->flag & FT_FIRST)
+				break ;
+		}
+	}
+	ft_dlistdel(&(term->dlist));
+	if (term->flag & SELECT_T)
+		close(term->fd);
+	return (errmsg(err));
+}
+
+/*
 ** INIT_SELECT:
-** print usage if wrong arguments or not enough argument
-** print help if -h
-** set a lot of variable, see structure in header.
-** feed a circular list with av if possible
-** get terminal
+** 1st if: print usage if bad or not enough arguments
+** 2nd if: print help if -h
+** Initialize variables, see structure in header.
+** 3rd if: feed a circular list with av if possible
+** 4th if: get terminal environment variable.
 ** set global variable for signal.
 ** set signal
 */
 
-int					init_select(t_term *term, int ac, char **av)
+static inline int	init_select(t_term *term, int ac, char **av)
 {
 	int	ret;
 
-	if (ac < 2 || !(ret = select_option(ac, av, &(term->flag))))
-		return (errmsg(ERR_USAGE));
-	if (term->flag & SELECT_H)
-		return (print_help());
+	if ((ac < 2
+			|| !(ret = select_option(ac, av, &(term->flag)))) && print_usage())
+		return (END_USAGE);
+	if ((term->flag & SELECT_H) && print_help())
+		return (END_USAGE);
 	term->name = 0;
 	term->selected = 0;
 	term->ac = ac - ret;
@@ -81,55 +119,13 @@ int					init_select(t_term *term, int ac, char **av)
 	term->down = (term->flag & SELECT_M) ? arrow_down_mat : arrow_down_cir;
 	term->left = (term->flag & SELECT_M) ? arrow_left_mat : arrow_left_cir;
 	term->right = (term->flag & SELECT_M) ? arrow_right_mat : arrow_right_cir;
-	if ((ret = feed_dlist(term, av + ret - 1)))
-		return (errmsg(ret));
-	if ((ret = get_terminal(term)))
+	ret = feed_dlist(term, av + ret - 1);
+	if (ret || (ret = get_terminal(term)))
 		return (ret);
 	g_term = term;
-	signal_setup(1);
+	signal_setup(ACTIVATE);
 	return (0);
 }
-
-/*
-** FINISH_SELECT:
-** Restore terminal session. Continue even in case of error.
-** Print selected argument if last keystroke was '\n'
-** delete circular list.
-** check if /dev/tty has been used and close the associated fd.
-*/
-
-void				finish_select(t_term *term, long key)
-{
-	int	ret;
-
-	ret = 0;
-	term->dcursor = term->dlist;
-	load_saved_terminal(term);
-	if (key == '\n')
-	{
-		while (1)
-		{
-			if (term->dcursor->flag & FT_SELECTED)
-			{
-				if (!ret && (ret = 1))
-					ft_dprintf(STDOUT_FILENO, "%s", term->dcursor->txt);
-				else
-					ft_dprintf(STDOUT_FILENO, " %s", term->dcursor->txt);
-			}
-			term->dcursor = term->dcursor->next;
-			if (term->dcursor->flag & FT_FIRST)
-				break ;
-		}
-	}
-	ft_dlistdel(&(term->dlist));
-	if (term->flag & SELECT_T)
-		close(term->fd);
-}
-
-/*
-** MAIN:
-** load_new_terminal might fail: in that case we attempt to restore the session
-*/
 
 int					main(int ac, char **av)
 {
@@ -137,13 +133,20 @@ int					main(int ac, char **av)
 	int		ret;
 
 	if ((ret = init_select(&term, ac, av)))
-		return (ret == ERR_USAGE ? 0 : ret);
+	{
+		if (ret == END_USAGE)
+			return (0);
+		return (errmsg(ret));
+	}
 	if ((ret = load_new_terminal(&term)))
 	{
-		finish_select(&term, 0);
-		return (ret);
+		(void)finish_select(&term, 0);
+		return (errmsg(ret));
 	}
-	ret = keypress(&term);
-	finish_select(&term, ret);
-	return (0);
+	if ((ret = keypress(&term)) && ret != '\n' && ret != KEY_ESCAPE)
+	{
+		(void)finish_select(&term, 0);
+		return (errmsg(ret));
+	}
+	return (finish_select(&term, ret));
 }

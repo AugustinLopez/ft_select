@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 13:56:28 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 18:19:54 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void				term_cursor(t_term *term, int col, int row, int offset)
 	t_dlist	*tmp;
 
 	x = (term->flag & SELECT_P) != 0 ? PRETTY_SPACING : 0;
-	if (term->row > row || term->maxlen + PRETTY_SPACING >= col)
+	if (term->row > row || term->maxlen + x >= col)
 	{
 		tputs(tgoto(tgetstr("cm", NULL), col, row), 1, term->putchar);
 		return ;

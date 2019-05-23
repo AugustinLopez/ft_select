@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 14:17:31 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 18:38:19 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,10 @@ static inline void	key_farrow(t_term *term)
 	term->right = (term->flag & SELECT_M) ? arrow_right_mat : arrow_right_cir;
 }
 
+/*
+** We should check for error on tputs, but a bonus is a bonus
+*/
+
 int					key_fn(t_term *term, long key)
 {
 	if (key == KEY_F2)
@@ -70,9 +74,9 @@ int					key_fn(t_term *term, long key)
 	{
 		term->flag ^= SELECT_CC;
 		if (term->flag & SELECT_CC)
-			tputs(tgetstr("ve", NULL), 1, term->putchar);
-		else
 			tputs(tgetstr("vi", NULL), 1, term->putchar);
+		else
+			tputs(tgetstr("ve", NULL), 1, term->putchar);
 	}
 	else
 		return (0);

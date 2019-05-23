@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 14:39:07 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 18:37:21 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,8 @@ static inline int	loop_sup(t_term *term, int colterm, int *column, int offset)
 	int tmp;
 	int	base_spacing;
 
-	base_spacing = term->maxlen + PRETTY_SPACING * (term->flag & SELECT_P);
+	tmp = ((term->flag & SELECT_P) != 0);
+	base_spacing = term->maxlen + PRETTY_SPACING * tmp;
 	while (1)
 	{
 		tmp = colterm / (base_spacing + offset);
@@ -39,7 +40,8 @@ static inline int	loop_inf(t_term *term, int colterm, int *column, int offset)
 	int tmp;
 	int	base_spacing;
 
-	base_spacing = term->maxlen + PRETTY_SPACING * (term->flag & SELECT_P);
+	tmp = ((term->flag & SELECT_P) != 0);
+	base_spacing = term->maxlen + PRETTY_SPACING * tmp;
 	*column = term->ac;
 	while (1)
 	{
@@ -55,7 +57,8 @@ static inline void	calcul_col_per_row(t_term *term, int colterm, int *offset)
 	int		column;
 	int		tmp;
 
-	tmp = term->maxlen + PRETTY_SPACING * (term->flag & SELECT_P) + *offset;
+	tmp = ((term->flag & SELECT_P) != 0);
+	tmp = term->maxlen + tmp * PRETTY_SPACING + *offset;
 	if (!(column = colterm / tmp) || term->flag & SELECT_C)
 	{
 		*offset = 0;
@@ -89,7 +92,7 @@ int					print_main(t_term *term)
 		return (-1);
 	calcul_col_per_row(term, colterm, &offset);
 	print_column(term, term->col, term->row, offset);
-	if (term->flag & SELECT_CC)
+	if (!(term->flag & SELECT_CC))
 		term_cursor(term, colterm, rowterm, offset);
 	return (0);
 }

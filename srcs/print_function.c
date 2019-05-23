@@ -6,7 +6,7 @@
 /*   By: aulopez <aulopez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/22 18:42:20 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 14:18:40 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/23 18:14:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@
 int					print_help(void)
 {
 	ft_putstr(FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
-	ft_putstr("[" FT_BOLD "-CGhmcpt" FT_EOC "] [" FT_UNDER "arg1" FT_EOC " ");
-	ft_putendl(FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
+	ft_putstr("[" FT_BOLD "-" SELECT_OPTION FT_EOC "] [" FT_UNDER "arg1");
+	ft_putendl(FT_EOC " " FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
 	ft_putendl("\n\tThe following options are available:");
 	ft_putendl("\n\t(" FT_ITALIC "F2" FT_EOC ")\tSelect/Deselect all");
 	ft_putstr(FT_BOLD "\t-G" FT_EOC " (" FT_ITALIC "F3" FT_EOC);
@@ -37,9 +37,9 @@ int					print_help(void)
 	ft_putendl(FT_BOLD "\t-t" FT_EOC "\tUse /dev/tty");
 	ft_putendl("\n\tIf your arguments contains '-', use the following format:");
 	ft_putstr("\t" FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
-	ft_putstr("[" FT_BOLD "-CGhmcpt" FT_EOC "] -- [" FT_UNDER "arg1" FT_EOC);
-	ft_putendl(" " FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
-	return (ERR_USAGE);
+	ft_putstr("[" FT_BOLD "-" SELECT_OPTION FT_EOC "] -- [" FT_UNDER "arg1");
+	ft_putendl(FT_EOC " " FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
+	return (END_USAGE);
 }
 
 static inline void	print_color(t_term *term, t_dlist *tmp)
