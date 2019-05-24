@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/24 11:19:58 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 15:43:02 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -214,7 +214,7 @@ int						keypress(t_term *term);
 int						get_terminal(t_term *term);
 int						load_new_terminal(t_term *term);
 int						load_saved_terminal(t_term *term);
-
+int						reload_terminal(t_term *term);
 void					ft_dlistdel(t_dlist **elem);
 int						feed_dlist(t_term *term, char **av);
 

@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 17:26:03 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 15:48:33 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,22 +55,22 @@ void				signal_setup(int option)
 {
 	if (option)
 	{
-		signal(SIGWINCH, s_flag);
-		signal(SIGTSTP, s_flag);
+		signal(SIGHUP, s_exit);
 		signal(SIGINT, s_exit);
+		signal(SIGQUIT, s_exit);
 		signal(SIGTERM, s_exit);
 		signal(SIGABRT, s_exit);
-		signal(SIGQUIT, s_exit);
-		signal(SIGHUP, s_exit);
+		signal(SIGWINCH, s_flag);
+		signal(SIGTSTP, s_flag);
 	}
 	else
 	{
-		signal(SIGWINCH, SIG_DFL);
-		signal(SIGTSTP, SIG_DFL);
+		signal(SIGHUP, SIG_DFL);
 		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
 		signal(SIGTERM, SIG_DFL);
 		signal(SIGABRT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		signal(SIGHUP, SIG_DFL);
+		signal(SIGWINCH, SIG_DFL);
+		signal(SIGTSTP, SIG_DFL);
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/05 14:20:00 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 18:36:26 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 15:38:26 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,5 +92,26 @@ int					load_saved_terminal(t_term *term)
 	tputs(tgetstr("ve", NULL), 1, term->putchar);
 	if (tputs(tgetstr("te", NULL), 1, term->putchar))
 		return (ERR_TPUTS);
+	return (0);
+}
+
+/*
+** This function was made to solve the following problematic sequence:
+** kill -SIGTSTP PID
+** kill -SIGCONT PID
+** At this point, doing fg on the program will fail AND block SIGTSTP/Ctrl + Z
+*/
+
+int					reload_terminal(t_term *term)
+{
+	term->current.c_lflag &= ~(ICANON | ECHO);
+	term->current.c_cc[VMIN] = 1;
+	term->current.c_cc[VTIME] = 0;
+	if (tcsetattr(term->fd, TCSANOW, &term->current))
+		return (ERR_RELOAD);
+	if (tputs(tgetstr("ti", NULL), 1, term->putchar))
+		return (ERR_RELOAD);
+	if (term->flag & SELECT_CC)
+		tputs(tgetstr("vi", NULL), 1, term->putchar);
 	return (0);
 }

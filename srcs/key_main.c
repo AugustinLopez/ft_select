@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 18:37:36 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 15:38:47 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,17 +59,21 @@ static inline int	setup_reader(t_term *term, long *key)
 
 int					key_signal(t_term *term)
 {
+	int	ret;
+
 	if (term->flag & SELECT_CTRLZ)
 	{
 		load_saved_terminal(term);
 		signal_setup(DESACTIVATE);
 		ioctl(term->fd, TIOCSTI, "\x1A");
 		signal_setup(ACTIVATE);
-		term->flag &= ~SELECT_CTRLZ;
 		if (term->flag & SELECT_T)
 			close(term->fd);
-		if (get_terminal(term) || load_new_terminal(term))
-			return (-1);
+		if ((ret = get_terminal(term)))
+			return (ret);
+		if ((ret = reload_terminal(term)))
+			return (ret);
+		term->flag &= ~SELECT_CTRLZ;
 		if (term->flag & SELECT_CC)
 			tputs(tgetstr("vi", NULL), 1, term->putchar);
 	}
@@ -94,7 +98,7 @@ int					keypress(t_term *term)
 		{
 			if (ret == 1)
 				continue ;
-			return (ERR_RELOAD);
+			return (ret);
 		}
 		if (!key || key_arrow(term, key) || key_fn(term, key))
 			continue ;
