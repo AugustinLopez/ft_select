@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/24 15:43:02 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 17:44:49 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 ** unistd: read
 ** stdlib: malloc, free
 ** fcntl: open
-** sys/stat: lstat
+** sys/stat: lstat (color bonus)
 */
 
 # include <libft.h>

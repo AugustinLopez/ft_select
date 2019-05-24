@@ -91,13 +91,15 @@ Select one. Ctrl+C
 
 ./ft_select *
 Get PID with top. kill PID
-(signal to test: HUP, INT, QUIT, ABRT, KILL, ALRM, TERM)
-KILL is not interceptable.
+(HUP, INT, QUIT, ABRT, TERM, KILL, SEGV)
+HUP, INT, QUIT, ABRT, TERM should be handled.
+KILL is not interceptable but should not destroy the terminal.
+Other signal should not destroy the terminal either.
 
 ./ft_select *
 Select two with space.
 Ctrl+Z
-fg ./ft_select
+fg ./ft_select (if backquote, use kill -CONT)
 Enter
 
 ./ft_select *
@@ -110,16 +112,27 @@ Held backspace.
 ./ft_select *
 Select two with space.
 Get PID with top. kill -SIGTSTP PID
-fg ./ft_select (or kill -SIGCONT PID)
+fg ./ft_select
 Enter.
-SIGSTOP is not interceptable.
+
+./ft_select *
+Select two with space
+get PID with top. kill -SIGTSTOP PID
+fg ./ft_select (if backquote, use kill -CONT)
+Expect reasonable behavior: SIGSTOP is not interceptable.
 
 ./ft_select *
 Select two with space.
 Get PID with top. kill -SIGTSTP PID
-fg ./ft_select (or kill -SIGCONT PID)
-Held backspace.
-SIGSTOP is not interceptable.
+kill -SIGCONT PID
+jobs (you might see (tty output))
+fg ./ft_select
+Check if Ctrl+Z is still working.
+
+./ft_select * &
+jobs (you might see (tty output))
+fg ./ft_select
+Check if Ctrl+Z is still working.
 
 env -i ./ft_select *
 

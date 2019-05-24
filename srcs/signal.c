@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/24 15:48:33 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 18:20:18 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,10 @@ static inline void	s_flag(int signo)
 	ioctl(g_term->fd, TIOCSTI, "a");
 }
 
+/*
+** Best practice would be to raise the signal instead of exiting
+*/
+
 static inline void	s_exit(int signo)
 {
 	if (signo == SIGINT || signo == SIGABRT || signo == SIGQUIT
@@ -46,9 +50,9 @@ static inline void	s_exit(int signo)
 
 /*
 ** SIGWINCH -> Window resize
-** SIGTSTP -> Pause program
-** SIGCONT -> Continue paused program: not needed here
-** SIGINT, SIGABRT, SIGQUIT -> various quit signal
+** SIGTSTP -> Pause program (can be catched)
+** SIGHUP, SIGINT, SIGQUIT, SIGABRT, SIGTERM are termination signal
+** We do not handle SIGCONT:
 */
 
 void				signal_setup(int option)
@@ -58,8 +62,8 @@ void				signal_setup(int option)
 		signal(SIGHUP, s_exit);
 		signal(SIGINT, s_exit);
 		signal(SIGQUIT, s_exit);
-		signal(SIGTERM, s_exit);
 		signal(SIGABRT, s_exit);
+		signal(SIGTERM, s_exit);
 		signal(SIGWINCH, s_flag);
 		signal(SIGTSTP, s_flag);
 	}
@@ -68,8 +72,8 @@ void				signal_setup(int option)
 		signal(SIGHUP, SIG_DFL);
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_DFL);
-		signal(SIGTERM, SIG_DFL);
 		signal(SIGABRT, SIG_DFL);
+		signal(SIGTERM, SIG_DFL);
 		signal(SIGWINCH, SIG_DFL);
 		signal(SIGTSTP, SIG_DFL);
 	}
