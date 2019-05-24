@@ -1,0 +1,140 @@
+./ft_select
+
+./ft_select *
+Escape
+
+./ft_select * */*
+Escape
+
+./ft_select * */* */*/*
+Escape
+
+./ft_select a * */* b c
+Escape
+
+./ft_select ''
+
+./ft_select a ''
+Escape
+
+./ft_select '' a
+Escape
+
+./ft_select '' a ''
+Escape
+
+./ft_select a '' b
+Escape
+
+./ft_select a ' a'
+Escape
+
+./ft_select * */*
+All arrows. Escape.
+
+./ft_select a
+All arrows. Escape.
+
+./ft_select * */*
+Held space on several arg. Escape.
+
+./ft_select a
+Held space. Escape.
+
+./ft_select a
+Enter.
+
+./ft_select * */*
+Enter.
+
+./ft_select a
+Select with space. Enter.
+
+./ft_select * */*
+Select several with space. Enter.
+
+./ft_select *
+Select all. Enter.
+
+./ft_select * */*
+Zoom, dezoom, reduce size, increase size. Escape.
+
+./ft_select a
+Zoom, dezoom, reduce size, increase size. Escape.
+
+./ft_select *
+Held backspace.
+
+./ft_select *
+Held delete.
+
+./ft_select a
+Held backspace.
+
+./ft_select a
+Select with space. Backspace
+
+./ft_select *
+Select all. Held backspace.
+
+./ft_select *
+Select three. Delete one. Enter.
+
+./ft_select *
+Select three. Backspace them. Enter.
+
+./ft_select *
+Ctrl+C
+
+./ft_select *
+Select one. Ctrl+C
+
+./ft_select *
+Get PID with top. kill PID
+(signal to test: HUP, INT, QUIT, ABRT, KILL, ALRM, TERM)
+KILL is not interceptable.
+
+./ft_select *
+Select two with space.
+Ctrl+Z
+fg ./ft_select
+Enter
+
+./ft_select *
+Select two with space.
+Ctrl+Z
+fg ./ft_select
+Held backspace.
+
+
+./ft_select *
+Select two with space.
+Get PID with top. kill -SIGTSTP PID
+fg ./ft_select (or kill -SIGCONT PID)
+Enter.
+SIGSTOP is not interceptable.
+
+./ft_select *
+Select two with space.
+Get PID with top. kill -SIGTSTP PID
+fg ./ft_select (or kill -SIGCONT PID)
+Held backspace.
+SIGSTOP is not interceptable.
+
+env -i ./ft_select *
+
+env -i "TERM=" ./ft_select *
+
+bash
+./ft_select *
+Ctrl+Z
+TERM=
+fg ./ft_select
+Escape
+exit
+
+./ft_select * < /dev/null
+
+Now redo everything but with the following form:
+ls `./ft_select`
+Except signal, most them should be possible with valgrind up.
