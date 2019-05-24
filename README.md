@@ -7,7 +7,7 @@ The goal is to allow an user to easily move around a printed list of argument wi
 - The [GNU Termcap Manual](https://www.gnu.org/software/termutils/manual/termcap-1.3/html_mono/termcap.html)
 - [Understanding read() behavior with VMIN and VTIME](http://www.unixwiz.net/techtips/termios-vmin-vtime.html)
 
-### Credit:
+### Credit
 I always try to find other implementation on Github. You may find similarities between their code and mine:
 - [An implementation that goes beyond the subject and an awesome README](https://github.com/R4meau/ft_select)
 
@@ -19,9 +19,9 @@ cd ft_select
 make
 ```
 
-### Usage:
+### Usage
 ```
-./ft_select [-CGhmpc] [--] [arg1 arg2 ...]
+./ft_select [-chmptCG] [--] [arg1 arg2 ...]
 ```
 The following command is possible but not advised if an argument contains whitespace characters.
 ```
@@ -39,18 +39,25 @@ ls `./ft_select *`
 - p: Prettier Display On
 - c: Column + cursor at bottom On (For huge list of argument)
 - m: Non-Circular Movement On
-- C: Terminal Cursor Show
+- C: Terminal Cursor Hide
+- t: Use /dev/tty instead of default STDIN_FILENO
 
-### keys
+### Keys
 - Arrow keys: move around the list. The default movement is **circular**: one arrow can move through the whole list.
 - Space key: Select/Deselect an argument.
 - Enter key: End the program and print each selected argument separated by one space without carriage return.
 - Escape key: End the program immediately.
-- Backspace/delete keys: Remove the cursor argument. If no argument left, end the program immediately.
-- F2 key: Select/deselect all.
+- Backspace/Delete keys: Remove the cursor argument. If no argument left, end the program immediately.
+- F2 key: Select/deselect all
 - F3 key: Color On/Off
 - F4 key: Prettier display On/Off
 - F5 key: Column + cursor at bottom On/Off
 - F6 key: Non-Circular Movement On/Off
 - F7 key: Terminal Cursor Show/Hide
+- Page Up/Page Down key: Change the order in which the argument will be printed.
 - Keys such as 'a', 'b', 'c' can be used to look for an argument starting with the corresponding letter. Case sensitive.
+
+## Test environment
+- Shell: zsh 5.2 (x86_64-apple-darwin16.0)
+- Terminal: xterm_256color
+- Term program Version: 3.2.9

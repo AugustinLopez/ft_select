@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:23:47 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 18:06:13 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 11:19:58 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@
 # define KEY_F5 542058306331L
 # define KEY_F6 542091860763L
 # define KEY_F7 542108637979L
+# define KEY_PUP 2117425947L
+# define KEY_PDOWN 2117491483L
 
 /*
 ** Flags for each element of the list

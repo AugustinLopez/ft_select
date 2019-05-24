@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 17:14:07 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 11:26:13 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,13 +54,33 @@ static inline int	delete_arg(t_term *term)
 	return (0);
 }
 
+static inline int	key_page(t_term *term, long key)
+{
+	if (key == KEY_PUP)
+	{
+		term->mem = term->mem->next;
+		term->dcursor->flag &= ~FT_CURSOR;
+		term->dcursor->next->flag |= FT_CURSOR;
+		term->dcursor = term->dcursor->next;
+	}
+	else if (key == KEY_PDOWN)
+	{
+		term->mem = term->mem->prev;
+		term->dcursor->flag &= ~FT_CURSOR;
+		term->dcursor->prev->flag |= FT_CURSOR;
+		term->dcursor = term->dcursor->prev;
+	}
+	else
+		return (0);
+	return (1);
+}
+
 int					key_special(t_term *term, long key)
 {
 	if (key == ' ')
 	{
 		term->dcursor->flag ^= FT_SELECTED;
 		term->selected += term->dcursor->flag & FT_SELECTED ? 1 : -1;
-		return (1);
 	}
 	else if (key == '\n')
 		return (key);
@@ -71,7 +91,9 @@ int					key_special(t_term *term, long key)
 		if (delete_arg(term))
 			return (KEY_ESCAPE);
 	}
-	return (0);
+	else
+		return (key_page(term, key));
+	return (1);
 }
 
 void				key_basic(t_term *term, long key)

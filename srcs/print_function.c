@@ -6,7 +6,7 @@
 /*   By: aulopez <aulopez@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/22 18:42:20 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 18:14:28 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/24 11:42:56 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,19 +22,21 @@ int					print_help(void)
 	ft_putstr("[" FT_BOLD "-" SELECT_OPTION FT_EOC "] [" FT_UNDER "arg1");
 	ft_putendl(FT_EOC " " FT_UNDER "arg2" FT_EOC " " FT_UNDER "..." FT_EOC "]");
 	ft_putendl("\n\tThe following options are available:");
-	ft_putendl("\n\t(" FT_ITALIC "F2" FT_EOC ")\tSelect/Deselect all");
+	ft_putstr("\n\t(" FT_ITALIC "P-Up/P-Down" FT_EOC);
+	ft_putendl(")\tChange final print order");
+	ft_putendl("\t(" FT_ITALIC "F2" FT_EOC ")\t\tSelect/Deselect all");
 	ft_putstr(FT_BOLD "\t-G" FT_EOC " (" FT_ITALIC "F3" FT_EOC);
-	ft_putendl(")\tColor On/Off");
+	ft_putendl(")\t\tColor On/Off");
 	ft_putstr(FT_BOLD "\t-p" FT_EOC " (" FT_ITALIC "F4" FT_EOC);
-	ft_putendl(")\tPretty display On/Off");
+	ft_putendl(")\t\tPretty display On/Off");
 	ft_putstr(FT_BOLD "\t-c" FT_EOC " (" FT_ITALIC "F5" FT_EOC);
-	ft_putendl(")\tCircular column On/Off");
+	ft_putendl(")\t\tCircular column On/Off");
 	ft_putstr(FT_BOLD "\t-m" FT_EOC " (" FT_ITALIC "F6" FT_EOC);
-	ft_putendl(")\tNon-circular movement On/Off");
+	ft_putendl(")\t\tNon-circular movement On/Off");
 	ft_putstr(FT_BOLD "\t-C" FT_EOC " (" FT_ITALIC "F7" FT_EOC);
-	ft_putendl(")\tTerminal Cursor On/Off");
-	ft_putendl(FT_BOLD "\t-h" FT_EOC "\tHelp");
-	ft_putendl(FT_BOLD "\t-t" FT_EOC "\tUse /dev/tty");
+	ft_putendl(")\t\tTerminal Cursor On/Off");
+	ft_putendl(FT_BOLD "\t-h" FT_EOC "\t\tHelp");
+	ft_putendl(FT_BOLD "\t-t" FT_EOC "\t\tUse /dev/tty");
 	ft_putendl("\n\tIf your arguments contains '-', use the following format:");
 	ft_putstr("\t" FT_UNDER "usage" FT_EOC ": " FT_BOLD "./ft_select " FT_EOC);
 	ft_putstr("[" FT_BOLD "-" SELECT_OPTION FT_EOC "] -- [" FT_UNDER "arg1");
