@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/24 18:20:18 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/30 13:42:09 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,7 @@ static inline void	s_flag(int signo)
 
 static inline void	s_exit(int signo)
 {
-	if (signo == SIGINT || signo == SIGABRT || signo == SIGQUIT
-	|| signo == SIGTERM || signo == SIGHUP)
+	if (signo != SIGTSTP && signo != SIGWINCH)
 	{
 		load_saved_terminal(g_term);
 		signal_setup(DESACTIVATE);
@@ -51,30 +50,23 @@ static inline void	s_exit(int signo)
 /*
 ** SIGWINCH -> Window resize
 ** SIGTSTP -> Pause program (can be catched)
-** SIGHUP, SIGINT, SIGQUIT, SIGABRT, SIGTERM are termination signal
-** We do not handle SIGCONT:
 */
 
 void				signal_setup(int option)
 {
+	int	i;
+
+	i = 0;
 	if (option)
 	{
-		signal(SIGHUP, s_exit);
-		signal(SIGINT, s_exit);
-		signal(SIGQUIT, s_exit);
-		signal(SIGABRT, s_exit);
-		signal(SIGTERM, s_exit);
+		while (i++ < SIGUSR2)
+			signal(i, s_exit);
 		signal(SIGWINCH, s_flag);
 		signal(SIGTSTP, s_flag);
 	}
 	else
 	{
-		signal(SIGHUP, SIG_DFL);
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		signal(SIGABRT, SIG_DFL);
-		signal(SIGTERM, SIG_DFL);
-		signal(SIGWINCH, SIG_DFL);
-		signal(SIGTSTP, SIG_DFL);
+		while (i++ < SIGUSR2)
+			signal(i, SIG_DFL);
 	}
 }

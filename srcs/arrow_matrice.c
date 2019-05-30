@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:52 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/15 11:50:42 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/30 13:48:32 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,8 @@ static inline int	init_arrow_updown(t_term *term, long key)
 			term->dcursor->prev->flag |= FT_CURSOR;
 		else
 			term->dcursor->next->flag |= FT_CURSOR;
-		term->dcursor = key == KEY_UP ?
-			term->dcursor->prev : term->dcursor->next;
+		term->dcursor = key == KEY_UP
+			? term->dcursor->prev : term->dcursor->next;
 		return (1);
 	}
 	return (0);
@@ -58,8 +58,8 @@ void				arrow_up_mat(t_term *term)
 	{
 		j++;
 		if (tmp->flag & FT_FIRST)
-			i = (term->ac % term->col >= j) ?
-				term->ac % term->col - j : i + term->ac % term->col;
+			i = (term->ac % term->col >= j)
+				? term->ac % term->col - j : i + term->ac % term->col;
 		tmp = tmp->prev;
 	}
 	term->dcursor = tmp;
@@ -82,8 +82,8 @@ void				arrow_down_mat(t_term *term)
 	{
 		j++;
 		if (tmp->next->flag & FT_FIRST)
-			i = (term->ac % term->col >= j) ?
-				term->ac % term->col - j : i + term->ac % term->col;
+			i = (term->ac % term->col >= j)
+				? term->ac % term->col - j : i + term->ac % term->col;
 		tmp = tmp->next;
 	}
 	term->dcursor = tmp;

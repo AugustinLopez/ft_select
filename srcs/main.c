@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/02 13:27:05 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/24 15:43:11 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/30 14:02:04 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,9 +74,9 @@ static inline int	finish_select(t_term *term, int key)
 		while (1)
 		{
 			if (term->dcursor->flag & FT_SELECTED)
-				(!ret && (ret = 1)) ?
-					ft_dprintf(STDOUT_FILENO, "%s", term->dcursor->txt) :
-					ft_dprintf(STDOUT_FILENO, " %s", term->dcursor->txt);
+				(!ret && (ret = 1))
+					? ft_dprintf(STDOUT_FILENO, "%s", term->dcursor->txt)
+					: ft_dprintf(STDOUT_FILENO, " %s", term->dcursor->txt);
 			term->dcursor = term->dcursor->next;
 			if (term->dcursor->flag & FT_FIRST)
 				break ;
@@ -136,6 +136,9 @@ int					main(int ac, char **av)
 	{
 		if (ret == END_USAGE)
 			return (0);
+		ft_dlistdel(&(term.dlist));
+		if (term.flag & SELECT_T)
+			close(term.fd);
 		return (errmsg(ret));
 	}
 	if ((ret = load_new_terminal(&term)))

@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/09 14:02:23 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/23 11:19:23 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/30 13:52:28 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 ** it should be appended to.
 */
 
-t_dlist				*ft_dlistnew(char *src, int flag, t_dlist *prev)
+static inline t_dlist	*ft_dlistnew(char *src, int flag, t_dlist *prev)
 {
 	t_dlist	*new;
 
@@ -42,7 +42,7 @@ t_dlist				*ft_dlistnew(char *src, int flag, t_dlist *prev)
 ** Beware: the content of the list is assumed to have been malloc'd.
 */
 
-void				ft_dlistdel(t_dlist **elem)
+void					ft_dlistdel(t_dlist **elem)
 {
 	t_dlist	*tmp;
 	t_dlist	*last;
@@ -73,7 +73,7 @@ void				ft_dlistdel(t_dlist **elem)
 ** Function required because of the 25 lines max rule.
 */
 
-static inline int	return_dlist(t_term *term)
+static inline int		return_dlist(t_term *term)
 {
 	if (!(term->dlist))
 		return (ERR_EMPTYARG);
@@ -93,7 +93,7 @@ static inline int	return_dlist(t_term *term)
 ** 3rd if: return on malloc error.
 */
 
-int					feed_dlist(t_term *term, char **av)
+int						feed_dlist(t_term *term, char **av)
 {
 	int	i;
 	int	len;

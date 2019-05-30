@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/24 11:26:13 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/05/30 13:50:36 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@ int					key_special(t_term *term, long key)
 	{
 		term->dcursor->flag ^= FT_SELECTED;
 		term->selected += term->dcursor->flag & FT_SELECTED ? 1 : -1;
+		arrow_right_cir(term);
 	}
 	else if (key == '\n')
 		return (key);

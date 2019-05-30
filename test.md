@@ -1,5 +1,6 @@
 Some still reachable leaks might happens due to tputs, tgetent, tgetstr.
 It is "normal" according to the curse FAQ.
+Signal may not work properly with valgrind.
 
 ## TEST 1-EASY: NO ARG
 Check behavior with no arg.
@@ -49,13 +50,16 @@ Expect reasonable behavior.
 Check behavior with both valid and NULL args.
 
 End with Escape if necessary. Test movement, space, etc... if empty arg are shown.
+- ``` ./ft_select '' ```
 - ``` ./ft_select a '' ```
 - ``` ./ft_select '' a ```
 - ``` ./ft_select a '' b ```
 - ``` ./ft_select '' a '' ```
+-``` `./ft_select ''` ```
 - ``` `./ft_select '' a` ```
 - ``` `./ft_select a '' b` ```
 - ``` `./ft_select '' a ''` ```
+-``` valgrind ./ft_select '' ```
 - ``` valgrind ./ft_select a '' ```
 - ``` valgrind ./ft_select '' a ```
 - ``` valgrind ./ft_select a '' b ```
@@ -90,7 +94,7 @@ Test each arrow keys. End with Escape.
 Expect no bug.
 
 ## TEST 10-EASY: CIRCULAR ARROW WITH LOT OF ARGS
-Check behavior of arrow keys with a number of arg thatdoes not fit in the window.
+Check behavior of arrow keys with a number of arg that does not fit in the window.
 
 Test each arrow keys. End with Escape.
 - ``` ./ft_select / /* ```
@@ -98,45 +102,46 @@ Test each arrow keys. End with Escape.
 - ``` valgrind ./ft_select / /* ```
 Expect reasonable behavior.
 
-./ft_select * */*
-Held space on several arg. Escape.
+## TEST 11-EASY: SPACE WITH ARGS
+Check behavior of space key with a number of arg that fit in the window.
 
-./ft_select a
-Held space. Escape.
+Held space key on several arg. Escape.
+- ``` ./ft_select * */*```
+- ``` `./ft_select * */*` ```
+-``` valgrind ./ft_select * */*```
+Expect no bug.
 
-./ft_select a
-Enter.
+## TEST 12-EASY: ENTER WITH NO ARG SELECTED
+Check behavior of Enter key with no argument selected.
 
-./ft_select * */*
-Enter.
+Press enter.
+-``` ./ft_select *```
+-``` `./ft_select *` ```
+-``` valgrind ./ft_select *```
+Expect no bug.
 
-./ft_select a
-Select with space. Enter.
+## TEST 13-EASY: ENTER WITH ARG SELECTED
+Check behavior of Enter key with one/several/all arguments selected.
 
-./ft_select * */*
-Select several with space. Enter.
+Select one/several/all arguments. Press enter.
+- ```./ft_select *```
+-``` ls `./ft_select *` ```
+- ``` valgrind ./ft_select *```
+Expect no bug.
 
-./ft_select *
-Select all. Enter.
-
+## TEST 14-MEDIUM: RESIZE
 ./ft_select * */*
 Zoom, dezoom, reduce size, increase size. Escape.
 
-./ft_select a
-Zoom, dezoom, reduce size, increase size. Escape.
-
+## TEST 15-EASY: BACKSPACE
 ./ft_select *
 Held backspace.
 
-./ft_select *
+## TEST 16-EASY: DELETE
+./ft_select a
 Held delete.
 
-./ft_select a
-Held backspace.
-
-./ft_select a
-Select with space. Backspace
-
+## TEST 17-EASY: SPACE AND DELETE
 ./ft_select *
 Select all. Held backspace.
 
@@ -146,12 +151,14 @@ Select three. Delete one. Enter.
 ./ft_select *
 Select three. Backspace them. Enter.
 
+## TEST 18-EASY: SIGINT
 ./ft_select *
 Ctrl+C
 
 ./ft_select *
 Select one. Ctrl+C
 
+## TEST 19-MEDIUM: KILL SIGNAL
 ./ft_select *
 Get PID with top. kill PID
 (HUP, INT, QUIT, ABRT, TERM, KILL, SEGV)
@@ -159,6 +166,7 @@ HUP, INT, QUIT, ABRT, TERM should be handled.
 KILL is not interceptable but should not destroy the terminal.
 Other signal should not destroy the terminal either.
 
+## TEST 20-MEDIUM: SIGTSTP
 ./ft_select *
 Select two with space.
 Ctrl+Z
@@ -178,12 +186,14 @@ Get PID with top. kill -SIGTSTP PID
 fg ./ft_select
 Enter.
 
+## TEST 21-MEDIUM: SIGSTOP
 ./ft_select *
 Select two with space
 get PID with top. kill -SIGTSTOP PID
 fg ./ft_select (if backquote, use kill -CONT)
 Expect reasonable behavior: SIGSTOP is not interceptable.
 
+## TEST 22-HARD: TTY OUTPUT
 ./ft_select *
 Select two with space.
 Get PID with top. kill -SIGTSTP PID
@@ -197,6 +207,7 @@ jobs (you might see (tty output))
 fg ./ft_select
 Check if Ctrl+Z is still working.
 
+## TEST 23-EASY: EMPTY ENV
 env -i ./ft_select *
 
 env -i "TERM=" ./ft_select *
@@ -209,8 +220,5 @@ fg ./ft_select
 Escape
 exit
 
+## TEST 24-HARD: REDIRECTION
 ./ft_select * < /dev/null
-
-Now redo everything but with the following form:
-ls `./ft_select`
-Except signal, most them should be possible with valgrind up.
