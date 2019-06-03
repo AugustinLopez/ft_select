@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 12:07:30 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/30 13:42:09 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/06/03 14:37:57 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,14 +59,14 @@ void				signal_setup(int option)
 	i = 0;
 	if (option)
 	{
-		while (i++ < SIGUSR2)
+		while (i++ < 65)
 			signal(i, s_exit);
 		signal(SIGWINCH, s_flag);
 		signal(SIGTSTP, s_flag);
 	}
 	else
 	{
-		while (i++ < SIGUSR2)
+		while (i++ < 65)
 			signal(i, SIG_DFL);
 	}
 }
