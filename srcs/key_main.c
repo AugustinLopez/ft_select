@@ -6,7 +6,7 @@
 /*   By: aulopez <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/14 16:40:25 by aulopez           #+#    #+#             */
-/*   Updated: 2019/05/24 17:25:46 by aulopez          ###   ########.fr       */
+/*   Updated: 2019/06/06 13:39:22 by aulopez          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ static inline int	setup_reader(t_term *term, long *key)
 	print_main(term);
 	if ((ret = read(term->fd, key, sizeof(key))) < 0)
 		return (-1);
+	if (!term->col)
+		return (0);
 	i = 0;
 	tmp = term->dlist;
 	while (1)
